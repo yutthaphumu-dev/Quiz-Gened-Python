@@ -1,0 +1,3682 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <title>ระบบฝึกทำข้อสอบและจดจำเฉลย (149 ข้อ)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Prompt', 'sans-serif'],
+            mono: ['Fira Code', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    html {
+      scroll-behavior: smooth;
+      touch-action: manipulation;
+    }
+    body {
+      font-family: 'Prompt', sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior-y: contain;
+    }
+    code, pre {
+      font-family: 'Fira Code', monospace;
+    }
+    /* Custom scrollbar for question grid and code blocks */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .option-btn {
+      min-height: 52px;
+      touch-action: manipulation;
+      transform: translateZ(0);
+      transition: background-color 0.12s ease, border-color 0.12s ease, transform 0.08s ease;
+    }
+    .option-btn:active:not(:disabled) {
+      transform: scale(0.988) translateZ(0);
+    }
+    .pb-safe {
+      padding-bottom: calc(0.65rem + env(safe-area-inset-bottom, 0px));
+    }
+    .mobile-bottom-spacer {
+      height: calc(5.2rem + env(safe-area-inset-bottom, 0px));
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Navigation & Stats Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+    <div class="max-w-7xl mx-auto px-3 sm:px-5 py-2.5 sm:py-3">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <!-- App Brand -->
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center font-bold text-lg shadow-xs shrink-0">
+            Q
+          </div>
+          <div>
+            <h1 class="text-sm sm:text-base font-bold text-slate-800 leading-tight">คลังข้อสอบ & ฝึกจำเฉลย</h1>
+            <p class="text-[11px] sm:text-xs text-slate-500">ครบทั้ง 149 ข้อ • ลื่นไหล 60fps</p>
+          </div>
+        </div>
+
+        <!-- Score Pills & Device/View Switchers -->
+        <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs">
+          <div class="flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-1 rounded-lg border border-emerald-200 font-medium">
+            <span>ถูก:</span>
+            <span id="statCorrect" class="font-bold">0</span>
+          </div>
+          <div class="flex items-center gap-1 bg-rose-50 text-rose-700 px-2 py-1 rounded-lg border border-rose-200 font-medium">
+            <span>ผิด:</span>
+            <span id="statWrong" class="font-bold">0</span>
+          </div>
+          <div class="hidden md:flex items-center gap-1 bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg border border-slate-200 font-medium">
+            <span>แม่นยำ:</span>
+            <span id="statPercent" class="font-bold">0%</span>
+          </div>
+
+          <!-- Device Layout Mode Switcher -->
+          <div class="inline-flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200" title="เลือกโหมดหน้าจอ">
+            <button type="button" data-device="auto" onclick="setDeviceMode('auto')" class="device-btn px-2 py-1 rounded-md text-[11px] font-semibold transition">Auto</button>
+            <button type="button" data-device="mobile" onclick="setDeviceMode('mobile')" class="device-btn px-2 py-1 rounded-md text-[11px] font-semibold transition">📱 มือถือ</button>
+            <button type="button" data-device="tablet" onclick="setDeviceMode('tablet')" class="device-btn px-2 py-1 rounded-md text-[11px] font-semibold transition">📟 iPad</button>
+            <button type="button" data-device="desktop" onclick="setDeviceMode('desktop')" class="device-btn hidden sm:inline-block px-2 py-1 rounded-md text-[11px] font-semibold transition">💻 PC</button>
+          </div>
+
+          <!-- Cheat Sheet Toggle -->
+          <button id="toggleModeBtn" onclick="toggleViewMode()" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition">
+            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+            <span id="modeBtnLabel">อ่านเฉลย</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Horizontal Scrollable Category Chips (Mobile & Touch Friendly) -->
+      <div id="categoryChipsBar" class="mt-2.5 pt-2 border-t border-slate-100 flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+        <button type="button" data-cat="all" onclick="selectCategoryChip('all')" class="cat-chip shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition">ทั้งหมด (149)</button>
+        <button type="button" data-cat="mistakes" onclick="selectCategoryChip('mistakes')" class="cat-chip shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition">🔥 ข้อผิด (<span id="chipWrongCount">0</span>)</button>
+        <button type="button" data-cat="1" onclick="selectCategoryChip('1')" class="cat-chip shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition">1. พื้นฐาน & ลอจิก</button>
+        <button type="button" data-cat="2" onclick="selectCategoryChip('2')" class="cat-chip shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition">2. ฮาร์ดแวร์ & OS</button>
+        <button type="button" data-cat="3" onclick="selectCategoryChip('3')" class="cat-chip shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition">3. Data & Visual</button>
+        <button type="button" data-cat="4" onclick="selectCategoryChip('4')" class="cat-chip shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition">4. Python พื้นฐาน</button>
+        <button type="button" data-cat="5" onclick="selectCategoryChip('5')" class="cat-chip shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition">5. ลูป & โครงสร้างข้อมูล</button>
+        <button type="button" data-cat="6" onclick="selectCategoryChip('6')" class="cat-chip shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition">6. Open Data & Pandas</button>
+      </div>
+
+      <!-- Action & Progress Bar -->
+      <div class="mt-2 pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+          <!-- Random Question Mode Toggle -->
+          <button id="randomModeBtn" onclick="toggleRandomMode()" class="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition">
+            <span>🔀 สุ่มข้อ</span>
+          </button>
+
+          <!-- Reshuffle Current Queue Button (Shown when Random Mode is ON) -->
+          <button id="reshuffleBtn" onclick="reshuffleQuestions()" class="hidden shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-purple-100 border border-purple-300 text-purple-800 hover:bg-purple-200 transition" title="สุ่มลำดับข้อใหม่">
+            <span>🎲 สุ่มชุดใหม่</span>
+          </button>
+
+          <!-- Shuffle Choices Toggle -->
+          <button id="shuffleChoicesBtn" onclick="toggleShuffleChoices()" class="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition" title="สลับตำแหน่งตัวเลือก A/B/C/D">
+            <span>สลับช้อยส์</span>
+          </button>
+
+          <!-- Mistake Drill Loop Button -->
+          <button id="drillLoopBtn" onclick="openDrillSetupModal()" class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 text-white hover:bg-rose-700 shadow-xs transition">
+            <span>🔁 วนทำข้อผิด</span>
+          </button>
+
+          <button id="headerGridBtn" onclick="openGridModal()" class="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white border border-slate-300 text-slate-700 hover:bg-slate-50">
+            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+            เลือกข้อ 1-149
+          </button>
+
+          <button onclick="openBackupModal()" class="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white border border-slate-300 text-slate-700 hover:bg-slate-50">
+            💾 สำรอง
+          </button>
+
+          <button onclick="confirmReset()" class="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white border border-slate-300 text-rose-600 hover:bg-rose-50">
+            รีเซ็ต
+          </button>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="flex items-center gap-2 w-full sm:w-52">
+          <div class="flex-1 bg-slate-200 rounded-full h-2 overflow-hidden">
+            <div id="progressBar" class="bg-brand-600 h-2 rounded-full transition-all duration-200" style="width: 0%"></div>
+          </div>
+          <span id="progressText" class="text-xs font-semibold text-slate-600 whitespace-nowrap">0 / 149</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main id="mainWrapper" class="flex-1 max-w-5xl w-full mx-auto px-3 sm:px-5 py-4 sm:py-6">
+    
+    <!-- Toast / Notification Banner -->
+    <div id="toastBanner" class="hidden mb-4 p-3 rounded-xl border text-xs sm:text-sm font-medium flex items-center justify-between shadow-xs">
+      <span id="toastMessage"></span>
+      <button onclick="hideToast()" class="text-xs underline ml-3 opacity-80 hover:opacity-100 shrink-0">ปิด</button>
+    </div>
+
+    <!-- Active Drill Loop Status Banner -->
+    <div id="drillLoopBanner" class="hidden mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2 text-xs sm:text-sm text-rose-900 font-semibold">
+        <span class="px-2 py-0.5 rounded-md bg-rose-600 text-white text-xs">ติวเข้มข้อผิด</span>
+        <span id="drillLoopStatusText">เหลือข้อที่ต้องเก็บในรอบนี้ 0 ข้อ</span>
+      </div>
+      <button onclick="exitDrillLoop()" class="px-3 py-1 rounded-lg bg-white border border-rose-300 text-rose-700 text-xs font-semibold hover:bg-rose-100">
+        ออกจากโหมดวนข้อผิด
+      </button>
+    </div>
+
+    <!-- DRILL / QUIZ CONTAINER (Supports Single Focus & iPad Split Layout) -->
+    <div id="drillContainer">
+      <div id="quizLayoutGrid" class="grid grid-cols-1 gap-5">
+        
+        <!-- LEFT SIDEBAR: iPad / Tablet Split-Screen Quick Navigator (Shown in Tablet Mode) -->
+        <aside id="tabletSplitSidebar" class="hidden bg-white rounded-2xl border border-slate-200 shadow-xs p-4 flex-col max-h-[calc(100vh-11.5rem)] sticky top-40">
+          <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-100">
+            <div>
+              <h3 id="tabletSidebarTitle" class="text-sm font-bold text-slate-800">สารบัญข้อสอบ (1-149)</h3>
+              <p id="tabletSidebarSubtitle" class="text-[11px] text-slate-500">แตะเลขข้อเพื่อข้ามทันที</p>
+            </div>
+            <span id="tabletMasteredBadge" class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">0/149</span>
+          </div>
+          <div class="flex items-center gap-3 text-[11px] text-slate-500 mb-2.5">
+            <span class="flex items-center gap-1"><i class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></i> ถูก</span>
+            <span class="flex items-center gap-1"><i class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></i> ผิด</span>
+            <span class="flex items-center gap-1"><i class="w-2.5 h-2.5 rounded-full bg-slate-200 inline-block"></i> ยังไม่ทำ</span>
+          </div>
+          <div id="tabletSidebarGrid" class="overflow-y-auto grid grid-cols-5 gap-1.5 pr-1 flex-1">
+            <!-- Populated dynamically -->
+          </div>
+        </aside>
+
+        <!-- RIGHT / MAIN PANEL: Active Question Card -->
+        <div id="questionColumn" class="space-y-4 min-w-0">
+          <!-- Question Card (Supports Touch Swipe Left/Right) -->
+          <div id="swipeCardArea" class="bg-white rounded-2xl border border-slate-200 shadow-xs p-4 sm:p-7 select-none sm:select-auto">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3.5">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span id="qCategoryBadge" class="inline-block px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-medium bg-brand-50 text-brand-700 border border-brand-100">
+                  หมวดที่ 1
+                </span>
+                <span id="qOriginalBadge" class="hidden inline-block px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                  ข้อต้นฉบับ #1
+                </span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span id="qStatusBadge" class="hidden px-2.5 py-0.5 rounded-full text-xs font-semibold"></span>
+                <span id="qNumberBadge" class="text-xs sm:text-sm font-bold text-slate-500">ข้อที่ 1 / 149</span>
+              </div>
+            </div>
+
+            <!-- Question Text -->
+            <h2 id="questionText" class="text-base sm:text-xl font-semibold text-slate-800 leading-relaxed whitespace-pre-line">
+              กำลังโหลดคำถาม...
+            </h2>
+
+            <!-- Optional Code Block -->
+            <div id="questionCodeWrap" class="hidden mt-3.5">
+              <pre class="bg-slate-900 text-slate-100 p-3.5 sm:p-4 rounded-xl text-xs sm:text-sm overflow-x-auto leading-relaxed border border-slate-700"><code id="questionCode"></code></pre>
+            </div>
+
+            <!-- Optional Table / Graphic / SVG -->
+            <div id="questionMediaWrap" class="hidden mt-3.5 overflow-x-auto"></div>
+
+            <!-- Options List -->
+            <div id="optionsContainer" class="mt-5 space-y-2.5 sm:space-y-3">
+              <!-- Buttons injected by JS -->
+            </div>
+
+            <!-- Instant Feedback Box -->
+            <div id="feedbackBox" class="hidden mt-5 p-3.5 sm:p-4 rounded-xl border">
+              <div class="flex items-start gap-3">
+                <div id="feedbackIcon" class="mt-0.5 shrink-0"></div>
+                <div class="flex-1 min-w-0">
+                  <p id="feedbackTitle" class="font-bold text-sm sm:text-base"></p>
+                  <p id="feedbackDetail" class="text-xs sm:text-sm mt-1 leading-relaxed"></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Memory Trick / Mnemonic Box -->
+            <div id="memoryTrickBox" class="hidden mt-3.5 p-3.5 sm:p-4 rounded-xl bg-amber-50/90 border border-amber-200 text-amber-950">
+              <div class="flex items-start gap-2.5">
+                <span class="text-lg leading-none shrink-0">💡</span>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs font-bold uppercase tracking-wide text-amber-800">ทริคช่วยจำ (โจทย์ ↔ คำตอบ)</p>
+                  <p id="memoryTrickText" class="text-xs sm:text-sm mt-1 leading-relaxed font-medium"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Desktop / Tablet Inline Navigation Controls -->
+          <div id="desktopNavControls" class="flex items-center justify-between gap-2.5 pt-1">
+            <button id="prevBtn" onclick="prevQuestion()" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 sm:px-5 py-3 rounded-xl bg-white border border-slate-300 text-slate-700 font-medium text-xs sm:text-sm hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none shadow-xs transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+              ก่อนหน้า
+            </button>
+
+            <div class="flex items-center gap-2">
+              <button id="hintTrickBtn" onclick="toggleTrickHint()" class="px-3.5 py-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 font-semibold text-xs sm:text-sm hover:bg-amber-100 transition">
+                💡 ทริคจำ
+              </button>
+              <button id="revealBtn" onclick="revealCurrentAnswer()" class="px-3.5 py-3 rounded-xl bg-slate-100 border border-slate-300 text-slate-700 font-medium text-xs sm:text-sm hover:bg-slate-200 transition">
+                ดูเฉลย
+              </button>
+            </div>
+
+            <button id="nextBtn" onclick="nextQuestion()" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-5 sm:px-6 py-3 rounded-xl bg-brand-600 text-white font-semibold text-xs sm:text-sm hover:bg-brand-700 disabled:opacity-40 disabled:pointer-events-none shadow-xs transition">
+              ถัดไป
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+
+          <!-- Swipe / Keyboard Hint -->
+          <p id="gestureHintText" class="text-center text-xs text-slate-400">
+            ปัดซ้าย/ขวาบนการ์ดเพื่อเปลี่ยนข้อ • หรือกดปุ่ม 1-4 / ลูกศรซ้าย-ขวา
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHEAT SHEET / FLASHCARD ALL VIEW CONTAINER (Windowed Pagination for 60fps Zero Lag) -->
+    <div id="cheatSheetContainer" class="hidden space-y-4">
+      <div class="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="font-bold text-indigo-900 text-sm sm:text-base">โหมดอ่านทวนเฉลย + ทริคช่วยจำ (แบ่งหน้า 20 ข้อเพื่อความลื่นไหล)</h2>
+          <p class="text-xs text-indigo-700 mt-0.5">แสดงคำถามพร้อมไฮไลต์คำตอบที่ถูกต้องและทริคช่วยจำตามหมวดหมู่ที่เลือก</p>
+        </div>
+        <button onclick="toggleViewMode()" class="shrink-0 px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 shadow-xs">
+          กลับสู่โหมดฝึกทำข้อสอบ
+        </button>
+      </div>
+
+      <!-- Top Pagination Bar -->
+      <div id="cheatPaginationTop" class="flex flex-wrap items-center justify-between gap-2 bg-white p-3 rounded-xl border border-slate-200 text-xs"></div>
+
+      <div id="cheatSheetList" class="space-y-3.5">
+        <!-- Cheat sheet items injected by JS (max 20 per page) -->
+      </div>
+
+      <!-- Bottom Pagination Bar -->
+      <div id="cheatPaginationBottom" class="flex flex-wrap items-center justify-between gap-2 bg-white p-3 rounded-xl border border-slate-200 text-xs"></div>
+    </div>
+
+    <!-- Safe Spacer for Mobile Bottom Thumb Bar -->
+    <div id="mobileBottomSpacer" class="hidden mobile-bottom-spacer"></div>
+  </main>
+
+  <!-- MOBILE FIXED BOTTOM THUMB-ZONE ACTION BAR -->
+  <nav id="mobileBottomBar" class="hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 border-t border-slate-200 px-3 pt-2 pb-safe shadow-[0_-4px_12px_rgba(15,23,42,0.06)]">
+    <div class="max-w-lg mx-auto grid grid-cols-4 gap-2">
+      <button id="mobPrevBtn" onclick="prevQuestion()" class="flex flex-col items-center justify-center py-2 px-1 rounded-xl bg-slate-100 text-slate-700 active:bg-slate-200 disabled:opacity-40">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        <span class="text-[11px] font-semibold mt-0.5">ก่อนหน้า</span>
+      </button>
+
+      <button onclick="toggleTrickHint()" class="flex flex-col items-center justify-center py-2 px-1 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 active:bg-amber-100">
+        <span class="text-base leading-none">💡</span>
+        <span class="text-[11px] font-semibold mt-1">ทริคจำ</span>
+      </button>
+
+      <button onclick="openGridModal()" class="flex flex-col items-center justify-center py-2 px-1 rounded-xl bg-slate-100 text-slate-700 active:bg-slate-200">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        <span class="text-[11px] font-semibold mt-0.5">ข้อ 1-149</span>
+      </button>
+
+      <button id="mobNextBtn" onclick="nextQuestion()" class="flex flex-col items-center justify-center py-2 px-1 rounded-xl bg-brand-600 text-white active:bg-brand-700 disabled:opacity-40 shadow-xs">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        <span class="text-[11px] font-semibold mt-0.5">ถัดไป</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Floating Back To Top Button (Cheat Sheet / Long Scroll) -->
+  <button id="backToTopBtn" onclick="scrollToTopSmooth()" class="hidden fixed right-4 bottom-20 sm:bottom-6 z-30 w-11 h-11 rounded-full bg-slate-800 text-white shadow-lg flex items-center justify-center hover:bg-slate-700 active:scale-95 transition" title="กลับขึ้นด้านบน">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+  </button>
+
+  <!-- Question Navigator Modal -->
+  <div id="gridModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-xl border border-slate-200">
+      <div class="p-4 border-b border-slate-200 flex items-center justify-between">
+        <div>
+          <h3 id="gridModalTitle" class="font-bold text-slate-800 text-base">เลือกข้อสอบที่ต้องการ (1 - 149)</h3>
+          <p id="gridModalSubtitle" class="text-xs text-slate-500 mt-0.5">เขียว = ตอบถูก • แดง = ตอบผิด • ขาว = ยังไม่ได้ทำ</p>
+        </div>
+        <button onclick="closeGridModal()" class="p-2 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div id="questionGrid" class="p-4 overflow-y-auto grid grid-cols-5 sm:grid-cols-10 gap-2">
+        <!-- Grid buttons injected by JS -->
+      </div>
+      <div class="p-3 border-t border-slate-200 bg-slate-50 sm:rounded-b-2xl flex justify-end pb-safe">
+        <button onclick="closeGridModal()" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-800 text-white text-xs font-semibold hover:bg-slate-700">
+          ปิดหน้าต่าง
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mistake Drill Loop Setup Modal -->
+  <div id="drillSetupModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-xl border border-slate-200">
+      <h3 class="font-bold text-slate-800 text-base">🔁 โหมดติวเข้มวนทำข้อผิด (Mistake Drill Loop)</h3>
+      <p id="drillSetupDesc" class="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
+        ระบบจะดึงเฉพาะข้อที่เคยตอบผิดมาให้ฝึกทำทีละข้อ หากยังตอบผิดซ้ำ ข้อนั้นจะถูกวนกลับไปต่อท้ายคิวจนกว่าจะตอบถูกครบทุกข้อ!
+      </p>
+      <div class="mt-4 space-y-2.5">
+        <button onclick="startDrillLoop(false)" class="w-full py-3 px-4 rounded-xl bg-rose-600 text-white font-semibold text-xs sm:text-sm hover:bg-rose-700 flex items-center justify-between">
+          <span>เริ่มวนข้อผิด (เรียงตามลำดับข้อ)</span>
+          <span>→</span>
+        </button>
+        <button onclick="startDrillLoop(true)" class="w-full py-3 px-4 rounded-xl bg-amber-500 text-white font-semibold text-xs sm:text-sm hover:bg-amber-600 flex items-center justify-between">
+          <span>เริ่มวนข้อผิด (แบบสุ่มสลับข้อ)</span>
+          <span>🔀</span>
+        </button>
+      </div>
+      <div class="mt-4 flex justify-end">
+        <button onclick="closeDrillSetupModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-600 text-xs font-medium hover:bg-slate-50">
+          ยกเลิก
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Backup / Restore Modal -->
+  <div id="backupModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-xl border border-slate-200">
+      <h3 class="font-bold text-slate-800 text-base">💾 สำรอง / กู้คืนประวัติการทำข้อสอบ</h3>
+      <p class="text-xs text-slate-500 mt-1">ระบบบันทึกอัตโนมัติในเครื่องนี้แล้ว แต่สามารถคัดลอกโค้ดด้านล่างเพื่อย้ายไปเปิดในมือถือ/iPad เครื่องอื่นได้</p>
+      <textarea id="backupCodeInput" rows="4" class="mt-3 w-full p-2.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="วางรหัสสำรองข้อมูลที่นี่เพื่อกู้คืน..."></textarea>
+      <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
+        <button onclick="copyBackupCode()" class="px-3.5 py-2 rounded-xl bg-brand-600 text-white text-xs font-semibold hover:bg-brand-700">
+          คัดลอกรหัสของฉัน
+        </button>
+        <button onclick="restoreBackupCode()" class="px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700">
+          กู้คืนข้อมูลจากรหัส
+        </button>
+        <button onclick="closeBackupModal()" class="px-3.5 py-2 rounded-xl border border-slate-300 text-slate-600 text-xs font-medium hover:bg-slate-50">
+          ปิด
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Confirm Reset Modal -->
+  <div id="resetModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl border border-slate-200">
+      <h3 class="font-bold text-slate-800 text-base">รีเซ็ตประวัติการทำข้อสอบ?</h3>
+      <p class="text-xs sm:text-sm text-slate-600 mt-2">คะแนนและประวัติข้อที่ตอบถูก/ผิดทั้งหมดจะถูกล้าง เพื่อเริ่มฝึกทำใหม่ตั้งแต่ข้อแรก</p>
+      <div class="mt-5 flex items-center justify-end gap-2">
+        <button onclick="closeResetModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 text-xs font-medium hover:bg-slate-50">
+          ยกเลิก
+        </button>
+        <button onclick="executeReset()" class="px-4 py-2 rounded-xl bg-rose-600 text-white text-xs font-semibold hover:bg-rose-700">
+          ยืนยันการรีเซ็ต
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // SVG & SPECIAL MEDIA TEMPLATES FOR DIAGRAM QUESTIONS
+    // =========================================================================
+    const MEDIA_TEMPLATES = {
+      q11_circuit: `
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col items-center">
+          <p class="text-xs text-slate-500 mb-2 font-medium">แผนภาพวงจรลอจิก (A = 0, B = 1)</p>
+          <svg viewBox="0 0 320 120" class="w-full max-w-xs h-auto">
+            <!-- Input labels -->
+            <text x="15" y="40" font-family="Fira Code, monospace" font-size="14" font-weight="bold" fill="#1e293b">A = 0</text>
+            <text x="15" y="85" font-family="Fira Code, monospace" font-size="14" font-weight="bold" fill="#1e293b">B = 1</text>
+            <!-- Wires to OR gate -->
+            <line x1="65" y1="35" x2="135" y2="35" stroke="#334155" stroke-width="2.5"/>
+            <line x1="65" y1="80" x2="135" y2="80" stroke="#334155" stroke-width="2.5"/>
+            <!-- OR Gate shape -->
+            <path d="M 125 20 Q 150 57.5 125 95 Q 185 95 215 57.5 Q 185 20 125 20 Z" fill="#ffffff" stroke="#1e293b" stroke-width="2.5"/>
+            <text x="152" y="62" font-family="Prompt, sans-serif" font-size="12" font-weight="bold" fill="#475569">OR</text>
+            <!-- Output wire -->
+            <line x1="215" y1="57.5" x2="275" y2="57.5" stroke="#334155" stroke-width="2.5"/>
+            <text x="282" y="62" font-family="Fira Code, monospace" font-size="14" font-weight="bold" fill="#2563eb">Q = ?</text>
+          </svg>
+        </div>
+      `,
+      q12_timing: `
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 sm:p-4 overflow-x-auto">
+          <div class="min-w-[460px]">
+            <!-- Top OR Gate -->
+            <div class="flex justify-center mb-2">
+              <svg viewBox="0 0 220 75" class="w-48 h-auto">
+                <text x="20" y="26" font-family="Fira Code, monospace" font-size="13" font-weight="bold" fill="#1e293b">A</text>
+                <text x="20" y="56" font-family="Fira Code, monospace" font-size="13" font-weight="bold" fill="#1e293b">B</text>
+                <line x1="38" y1="22" x2="85" y2="22" stroke="#1e293b" stroke-width="2"/>
+                <line x1="38" y1="52" x2="85" y2="52" stroke="#1e293b" stroke-width="2"/>
+                <path d="M 78 10 Q 95 37 78 64 Q 125 64 148 37 Q 125 10 78 10 Z" fill="#fff" stroke="#1e293b" stroke-width="2"/>
+                <line x1="148" y1="37" x2="185" y2="37" stroke="#1e293b" stroke-width="2"/>
+                <text x="192" y="42" font-family="Fira Code, monospace" font-size="13" font-weight="bold" fill="#2563eb">Q</text>
+              </svg>
+            </div>
+            <!-- Timing Diagram SVG -->
+            <svg viewBox="0 0 540 370" class="w-full h-auto bg-white rounded-lg border border-slate-200 p-2">
+              <!-- Vertical dashed grid lines at rising edges -->
+              <line x1="120" y1="15" x2="120" y2="355" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4 3"/>
+              <line x1="240" y1="15" x2="240" y2="355" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4 3"/>
+              <line x1="360" y1="15" x2="360" y2="355" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4 3"/>
+
+              <!-- CLK -->
+              <text x="15" y="38" font-family="Fira Code, monospace" font-size="13" font-weight="bold" fill="#0f172a">CLK</text>
+              <polyline points="60,42 120,42 120,20 180,20 180,42 240,42 240,20 300,20 300,42 360,42 360,20 420,20 420,42 500,42" fill="none" stroke="#0f172a" stroke-width="2"/>
+
+              <!-- Input A (high from 180 to 300) -->
+              <text x="15" y="83" font-family="Fira Code, monospace" font-size="13" font-weight="bold" fill="#0f172a">A</text>
+              <polyline points="60,87 180,87 180,65 300,65 300,87 500,87" fill="none" stroke="#2563eb" stroke-width="2"/>
+
+              <!-- Input B (high from 120 to 360) -->
+              <text x="15" y="128" font-family="Fira Code, monospace" font-size="13" font-weight="bold" fill="#0f172a">B</text>
+              <polyline points="60,132 120,132 120,110 360,110 360,132 500,132" fill="none" stroke="#0284c7" stroke-width="2"/>
+
+              <line x1="15" y1="148" x2="520" y2="148" stroke="#e2e8f0" stroke-width="1.5"/>
+
+              <!-- Option A) -->
+              <text x="15" y="175" font-family="Prompt, sans-serif" font-size="12" font-weight="bold" fill="#334155">A) Q</text>
+              <polyline points="60,185 180,185 180,163 300,163 300,185 500,185" fill="none" stroke="#475569" stroke-width="2"/>
+
+              <!-- Option B) -->
+              <text x="15" y="225" font-family="Prompt, sans-serif" font-size="12" font-weight="bold" fill="#334155">B) Q</text>
+              <polyline points="60,235 120,235 120,213 360,213 360,235 500,235" fill="none" stroke="#475569" stroke-width="2"/>
+
+              <!-- Option C) -->
+              <text x="15" y="275" font-family="Prompt, sans-serif" font-size="12" font-weight="bold" fill="#334155">C) Q</text>
+              <polyline points="60,285 240,285 240,263 360,263 360,285 500,285" fill="none" stroke="#475569" stroke-width="2"/>
+
+              <!-- Option D) -->
+              <text x="15" y="325" font-family="Prompt, sans-serif" font-size="12" font-weight="bold" fill="#334155">D) Q</text>
+              <polyline points="60,335 500,335" fill="none" stroke="#475569" stroke-width="2"/>
+            </svg>
+          </div>
+        </div>
+      `,
+      q34_table: `
+        <div class="overflow-x-auto border border-slate-200 rounded-xl">
+          <table class="w-full text-xs sm:text-sm text-left">
+            <thead class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200">
+              <tr>
+                <th class="px-4 py-2.5">เครื่องดื่ม</th>
+                <th class="px-4 py-2.5">ราคา</th>
+                <th class="px-4 py-2.5">ช่องทาง</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 bg-white">
+              <tr><td class="px-4 py-2 font-mono">Cappu</td><td class="px-4 py-2">50</td><td class="px-4 py-2">LINE MAN</td></tr>
+              <tr><td class="px-4 py-2 font-mono">Cappuccino</td><td class="px-4 py-2">50</td><td class="px-4 py-2">Grab</td></tr>
+              <tr><td class="px-4 py-2 font-mono">Iced Coffee</td><td class="px-4 py-2">60</td><td class="px-4 py-2">LINE MAN</td></tr>
+              <tr><td class="px-4 py-2 font-mono">iced coffee</td><td class="px-4 py-2">60</td><td class="px-4 py-2">Grab</td></tr>
+              <tr><td class="px-4 py-2 font-mono">Iced Coffee - ไม่หวาน</td><td class="px-4 py-2">60</td><td class="px-4 py-2">LINE MAN</td></tr>
+              <tr><td class="px-4 py-2 font-mono">Iced Coffee - ไม่ใส่น้ำตาล</td><td class="px-4 py-2">60</td><td class="px-4 py-2">LINE MAN</td></tr>
+            </tbody>
+          </table>
+        </div>
+      `,
+      q37_chart: `
+        <div class="bg-white border border-slate-200 rounded-xl p-4 overflow-x-auto">
+          <div class="min-w-[480px]">
+            <p class="text-center font-bold text-slate-800 text-sm mb-2">Revenue by Order Type</p>
+            <svg viewBox="0 0 540 230" class="w-full h-auto">
+              <!-- Y-axis labels & grid -->
+              <text x="35" y="25" font-size="10" fill="#64748b" text-anchor="end">100%</text>
+              <line x1="42" y1="21" x2="455" y2="21" stroke="#e2e8f0" stroke-width="1"/>
+              <text x="35" y="65" font-size="10" fill="#64748b" text-anchor="end">75%</text>
+              <line x1="42" y1="61" x2="455" y2="61" stroke="#e2e8f0" stroke-width="1"/>
+              <text x="35" y="105" font-size="10" fill="#64748b" text-anchor="end">50%</text>
+              <line x1="42" y1="101" x2="455" y2="101" stroke="#e2e8f0" stroke-width="1"/>
+              <text x="35" y="145" font-size="10" fill="#64748b" text-anchor="end">25%</text>
+              <line x1="42" y1="141" x2="455" y2="141" stroke="#e2e8f0" stroke-width="1"/>
+              <text x="35" y="185" font-size="10" fill="#64748b" text-anchor="end">0%</text>
+              <line x1="42" y1="181" x2="455" y2="181" stroke="#94a3b8" stroke-width="1.2"/>
+
+              <!-- Bars for hours 7..21 -->
+              <g id="chartBars">
+                <!-- 7 -->
+                <rect x="50" y="133" width="16" height="48" fill="#f59e0b"/><rect x="50" y="21" width="16" height="112" fill="#9ca3af"/>
+                <text x="58" y="196" font-size="10" fill="#475569" text-anchor="middle">7</text>
+                <!-- 8 -->
+                <rect x="77" y="117" width="16" height="64" fill="#f59e0b"/><rect x="77" y="21" width="16" height="96" fill="#9ca3af"/>
+                <text x="85" y="196" font-size="10" fill="#475569" text-anchor="middle">8</text>
+                <!-- 9 -->
+                <rect x="104" y="149" width="16" height="32" fill="#f59e0b"/><rect x="104" y="37" width="16" height="112" fill="#9ca3af"/><rect x="104" y="21" width="16" height="16" fill="#06b6d4"/>
+                <text x="112" y="196" font-size="10" fill="#475569" text-anchor="middle">9</text>
+                <!-- 10 -->
+                <rect x="131" y="85" width="16" height="96" fill="#f59e0b"/><rect x="131" y="53" width="16" height="32" fill="#9ca3af"/><rect x="131" y="21" width="16" height="32" fill="#06b6d4"/>
+                <text x="139" y="196" font-size="10" fill="#475569" text-anchor="middle">10</text>
+                <!-- 11 -->
+                <rect x="158" y="101" width="16" height="80" fill="#f59e0b"/><rect x="158" y="77" width="16" height="24" fill="#9ca3af"/><rect x="158" y="21" width="16" height="56" fill="#06b6d4"/>
+                <text x="166" y="196" font-size="10" fill="#475569" text-anchor="middle">11</text>
+                <!-- 12 -->
+                <rect x="185" y="101" width="16" height="80" fill="#f59e0b"/><rect x="185" y="37" width="16" height="64" fill="#9ca3af"/><rect x="185" y="21" width="16" height="16" fill="#06b6d4"/>
+                <text x="193" y="196" font-size="10" fill="#475569" text-anchor="middle">12</text>
+                <!-- 13 -->
+                <rect x="212" y="125" width="16" height="56" fill="#f59e0b"/><rect x="212" y="69" width="16" height="56" fill="#9ca3af"/><rect x="212" y="21" width="16" height="48" fill="#06b6d4"/>
+                <text x="220" y="196" font-size="10" fill="#475569" text-anchor="middle">13</text>
+                <!-- 14 -->
+                <rect x="239" y="101" width="16" height="80" fill="#f59e0b"/><rect x="239" y="37" width="16" height="64" fill="#9ca3af"/><rect x="239" y="21" width="16" height="16" fill="#06b6d4"/>
+                <text x="247" y="196" font-size="10" fill="#475569" text-anchor="middle">14</text>
+                <!-- 15 -->
+                <rect x="266" y="85" width="16" height="96" fill="#f59e0b"/><rect x="266" y="37" width="16" height="48" fill="#9ca3af"/><rect x="266" y="21" width="16" height="16" fill="#06b6d4"/>
+                <text x="274" y="196" font-size="10" fill="#475569" text-anchor="middle">15</text>
+                <!-- 16 -->
+                <rect x="293" y="85" width="16" height="96" fill="#f59e0b"/><rect x="293" y="53" width="16" height="32" fill="#9ca3af"/><rect x="293" y="21" width="16" height="32" fill="#06b6d4"/>
+                <text x="301" y="196" font-size="10" fill="#475569" text-anchor="middle">16</text>
+                <!-- 17 -->
+                <rect x="320" y="69" width="16" height="112" fill="#f59e0b"/><rect x="320" y="45" width="16" height="24" fill="#9ca3af"/><rect x="320" y="21" width="16" height="24" fill="#06b6d4"/>
+                <text x="328" y="196" font-size="10" fill="#475569" text-anchor="middle">17</text>
+                <!-- 18 -->
+                <rect x="347" y="53" width="16" height="128" fill="#f59e0b"/><rect x="347" y="29" width="16" height="24" fill="#9ca3af"/><rect x="347" y="21" width="16" height="8" fill="#06b6d4"/>
+                <text x="355" y="196" font-size="10" fill="#475569" text-anchor="middle">18</text>
+                <!-- 19 -->
+                <rect x="374" y="69" width="16" height="112" fill="#f59e0b"/><rect x="374" y="29" width="16" height="40" fill="#9ca3af"/><rect x="374" y="21" width="16" height="8" fill="#06b6d4"/>
+                <text x="382" y="196" font-size="10" fill="#475569" text-anchor="middle">19</text>
+                <!-- 20 -->
+                <rect x="401" y="69" width="16" height="112" fill="#f59e0b"/><rect x="401" y="21" width="16" height="48" fill="#9ca3af"/>
+                <text x="409" y="196" font-size="10" fill="#475569" text-anchor="middle">20</text>
+                <!-- 21 -->
+                <rect x="428" y="85" width="16" height="96" fill="#f59e0b"/><rect x="428" y="21" width="16" height="64" fill="#9ca3af"/>
+                <text x="436" y="196" font-size="10" fill="#475569" text-anchor="middle">21</text>
+              </g>
+
+              <text x="248" y="216" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">Hour</text>
+
+              <!-- Legend -->
+              <rect x="468" y="75" width="10" height="10" fill="#06b6d4"/>
+              <text x="483" y="84" font-size="10" fill="#334155">Delivery</text>
+              <rect x="468" y="95" width="10" height="10" fill="#9ca3af"/>
+              <text x="483" y="104" font-size="10" fill="#334155">Takeaway</text>
+              <rect x="468" y="115" width="10" height="10" fill="#f59e0b"/>
+              <text x="483" y="124" font-size="10" fill="#334155">Dine-in</text>
+            </svg>
+          </div>
+        </div>
+      `
+    };
+
+    // =========================================================================
+    // ALL 149 QUESTIONS DATA IN EXACT ORDER FROM PDF + MEMORY TRICKS
+    // =========================================================================
+    const CATEGORIES = {
+      1: "หมวดที่ 1: พื้นฐานคอมพิวเตอร์ ระบบเลขฐาน และลอจิกเกต",
+      2: "หมวดที่ 2: ฮาร์ดแวร์ ซอฟต์แวร์ และระบบปฏิบัติการ",
+      3: "หมวดที่ 3: ข้อมูล การวิเคราะห์ข้อมูล และ Visualization",
+      4: "หมวดที่ 4: พื้นฐาน Python, Jupyter Notebook, ตัวแปร และ Operators",
+      5: "หมวดที่ 5: เงื่อนไข ลูป และโครงสร้างข้อมูล",
+      6: "หมวดที่ 6: Open Data และ Pandas"
+    };
+
+    const QUESTIONS = [
+      // --- หมวดที่ 1: พื้นฐานคอมพิวเตอร์ ระบบเลขฐาน และลอจิกเกต (หน้า 1-5) ---
+      {
+        id: 1, cat: 1,
+        q: "หลักการทดรอบของเฟืองสามารถนำมาใช้ช่วยในการคำนวณอัตโนมัติได้อย่างไร",
+        options: [
+          "อัตราส่วนเฟืองสามารถควบคุมความเร็วได้",
+          "เฟืองทดสามารถช่วยในการส่งกำลังได้",
+          "การทดรอบเทียบเท่าการทดเลขในหลักต่างๆ",
+          "การหมุนของเฟืองสามารถทำได้โดยไม่ต้องใช้แรงภายนอก"
+        ],
+        ans: 2,
+        trick: "จำคำว่า 'ทดรอบเฟือง' = 'ทดเลขในหลักต่างๆ' (หมุนครบ 10 ฟัน ทดไปหลักถัดไปเหมือนเครื่องคิดเลขกลไก)"
+      },
+      {
+        id: 2, cat: 1,
+        q: "ตัวเลือกใดแสดงแนวคิดของการทำงานโดยคอมพิวเตอร์เชิงไฟฟ้า",
+        options: [
+          "หลักการเปิด/ปิดสวิตช์ แทนค่า 0 หรือ 1 ในเลขฐานสอง",
+          "หลักการทดเลขในระบบฐานสอง",
+          "หลักการเหนี่ยวนำของแม่เหล็กไฟฟ้า",
+          "หลักการต้านทานกระแสของโหลดตัวต้านทาน"
+        ],
+        ans: 0,
+        trick: "คอมพิวเตอร์ไฟฟ้า = 'เปิด/ปิดสวิตช์' แทน 0 กับ 1 (เลขฐานสอง)"
+      },
+      {
+        id: 3, cat: 1,
+        q: "ทรานซิสเตอร์ถูกใช้อย่างไรในระบบคอมพิวเตอร์",
+        options: [
+          "ใช้แทนสวิตช์เชิงไฟฟ้า",
+          "ใช้แทนสวิตช์เชิงกล",
+          "ใช้แทนตัวต้านทานกระแส",
+          "ใช้แทนตัวนำไฟฟ้าให้กระแสไหล"
+        ],
+        ans: 0,
+        trick: "ทรานซิสเตอร์ = 'สวิตช์เชิงไฟฟ้า' ขนาดจิ๋ว เปิด-ปิดด้วยสัญญาณไฟฟ้าไม่มีชิ้นส่วนขยับ"
+      },
+      {
+        id: 4, cat: 1,
+        q: "กำหนดข้อมูลเลขฐานสอง ขนาด 8 หลัก เป็น 10010000 ตัวเลือกใดถูกต้อง",
+        options: [
+          "หากนับหลักซ้ายสุดเป็นเครื่องหมาย จะมีค่าเป็นจำนวนลบ",
+          "หากไม่มีการนับเครื่องหมาย จะมีค่าเป็น 144 ในฐานสิบ",
+          "เลข 8 หลักสามารถแทนค่าได้ทั้งหมด 256 รูปแบบ ซึ่งจะเป็นจำนวนบวกทั้งหมด หรือมีทั้งบวกและลบก็ได้",
+          "ถูกทุกตัวเลือก"
+        ],
+        ans: 3,
+        trick: "10010000 (8 บิต): บิตซ้ายเป็น 1 = ติดลบ, ไม่คิดเครื่องหมาย = 128+16 = 144, 2^8 = 256 รูปแบบ → ถูกทุกตัวเลือก!"
+      },
+      {
+        id: 5, cat: 1,
+        q: "หากต้องการเก็บข้อมูลจำนวนไม่เต็มด้วยเลขฐานสอง สิ่งใดที่ต้องพิจารณาบ้าง",
+        options: [
+          "วิธีการแทนตำแหน่งของจุดทศนิยมระหว่างจำนวนเต็มกับเศษทศนิยม",
+          "จำนวนบิตที่ใช้เก็บเพื่อความละเอียดตามต้องการ",
+          "วิธีการแทนเครื่องหมายลบ",
+          "ถูกทุกตัวเลือก"
+        ],
+        ans: 3,
+        trick: "เก็บทศนิยม (Floating-point) ต้องดูครบ 3 อย่าง: เครื่องหมาย + ตำแหน่งจุด + จำนวนบิต → ถูกทุกตัวเลือก"
+      },
+      {
+        id: 6, cat: 1,
+        q: "คอมพิวเตอร์เก็บข้อมูลที่เป็นข้อความต่างๆ อย่างไร",
+        options: [
+          "แปลงข้อความเป็นรหัสเลขฐานสอง 1 ชุด ต่อ 1 ข้อความ และเก็บค่าของเลขฐานสองนั้น",
+          "แปลงข้อความเป็นลำดับของตัวอักษร และแทนตัวอักษรด้วยเลขฐานสองตามรหัสมาตรฐาน",
+          "มองข้อความเป็นภาพ แล้วเก็บข้อมูลภาพนั้น",
+          "ถูกทุกตัวเลือก"
+        ],
+        ans: 1,
+        trick: "ข้อความ = แยกเป็น 'ตัวอักษรทีละตัว' แล้วแปลงตามรหัสมาตรฐาน (เช่น ASCII / Unicode)"
+      },
+      {
+        id: 7, cat: 1,
+        q: "ตัวเลือกใดถูกต้องเกี่ยวกับการเก็บข้อมูลภาพ",
+        options: [
+          "การเก็บข้อมูลสีของภาพ เป็นการเก็บข้อมูลองค์ประกอบของแม่สีที่รวมกันให้เกิดสีในจุดภาพนั้น",
+          "การเก็บข้อมูลภาพทำได้โดยแบ่งภาพเป็นจุดเล็กๆ และเก็บข้อมูลสีของแต่ละจุดนั้น",
+          "การเก็บข้อมูลภาพสามารถทำได้โดยเก็บข้อมูลสมการที่ใช้ในการวาดเส้นให้เกิดภาพนั้น",
+          "ถูกทุกตัวเลือก"
+        ],
+        ans: 3,
+        trick: "ภาพมีทั้ง Raster (จุด Pixel + แม่สี RGB) และ Vector (สมการวาดเส้น) → ถูกทุกตัวเลือก"
+      },
+      {
+        id: 8, cat: 1,
+        q: "หากข้อมูลทุกรูปแบบในคอมพิวเตอร์ปัจจุบันเก็บโดยใช้เลขฐานสองทั้งหมด ตัวเลือกใดต่อไปนี้ถูกต้อง",
+        options: [
+          "เราสามารถเปิดไฟล์ข้อความโดยมองเป็นรูปภาพได้ แต่น่าจะเป็นรูปที่ดูไม่รู้เรื่อง",
+          "เราสามารถมองข้อมูลรูปภาพเป็นตัวเลข และสามารถนำมาบวกลบได้",
+          "เราสามารถมองไฟล์วิดีโอเป็นไฟล์ข้อความขนาดใหญ่ได้ แต่น่าจะอ่านไม่ออก",
+          "ถูกทุกตัวเลือก"
+        ],
+        ans: 3,
+        trick: "ทุกไฟล์เป็น 0 กับ 1 เหมือนกันหมด จึงเปิดข้ามประเภทได้หมด (แค่ดูไม่รู้เรื่อง) → ถูกทุกตัวเลือก"
+      },
+      {
+        id: 9, cat: 1,
+        q: "หากกำหนด A = 0100 และ B = 0010 ตัวเลือกใดเป็นผลลัพธ์ของ A AND B",
+        options: [
+          "0000",
+          "0110",
+          "1000",
+          "1001"
+        ],
+        ans: 0,
+        trick: "AND ต้องเป็น 1 ทั้งคู่ถึงจะได้ 1: 0100 กับ 0010 ไม่มีหลักไหนตรงกันเลย → 0000"
+      },
+      {
+        id: 10, cat: 1,
+        q: "หากกำหนด A = 0100 และ B = 0010 ตัวเลือกใดเป็นผลลัพธ์ของ A OR B",
+        options: [
+          "0000",
+          "0110",
+          "1000",
+          "1001"
+        ],
+        ans: 1,
+        trick: "OR มี 1 ตัวเดียวก็ได้ 1: 0100 | 0010 รวมตำแหน่งที่มี 1 → 0110"
+      },
+      {
+        id: 11, cat: 1,
+        q: "หากกำหนด A = 0 และ B = 1 ตัวเลือกใดเป็นผลลัพธ์ของวงจรต่อไปนี้",
+        media: "q11_circuit",
+        options: [
+          "0",
+          "1",
+          "0 หรือ 1 ก็ได้",
+          "2"
+        ],
+        ans: 1,
+        trick: "รูปหัวจรวดโค้งๆ คือ OR Gate: 0 OR 1 = 1 เสมอ"
+      },
+      {
+        id: 12, cat: 1,
+        q: "กำหนดวงจร และจังหวะสัญญาณนาฬิกาดังนี้ และวงจรทำงานตามขอบขาขึ้นของสัญญาณนาฬิกา ซึ่งจะคำนวณผลลัพธ์จากข้อมูลเข้าก่อนขาขึ้นของสัญญาณนาฬิกา สัญญาณผลลัพธ์ Q ควรมีลักษณะอย่างไร",
+        media: "q12_timing",
+        options: [
+          "A)",
+          "B)",
+          "C)",
+          "D)"
+        ],
+        ans: 2,
+        trick: "ดูขอบขาขึ้น CLK เส้นที่ 2: ก่อนหน้านั้น A=1, B=1 → OR กันได้ 1 ทำให้ Q ยกขึ้นสูงที่เส้นประที่ 2 ตรงกับกราฟ C)"
+      },
+
+      // --- หมวดที่ 2: ฮาร์ดแวร์ ซอฟต์แวร์ และระบบปฏิบัติการ (หน้า 6-8) ---
+      {
+        id: 13, cat: 2,
+        q: "จากตัวเลือกต่อไปนี้ ส่วนใดทำงานเร็วที่สุด (ตามเฉลยใน PDF)",
+        options: [
+          "HDD",
+          "ROM",
+          "RAM",
+          "CPU"
+        ],
+        ans: 2,
+        note: "หมายเหตุ: ในเอกสารเฉลยต้นฉบับข้อนี้ติ๊กถูกที่ตัวเลือก RAM",
+        trick: "ข้อนี้จำตามเฉลย PDF เป๊ะๆ: ถาม 'ส่วนใดทำงานเร็วที่สุด' ให้ตอบ 'RAM'"
+      },
+      {
+        id: 14, cat: 2,
+        q: "ตัวเลือกใดเป็นส่วนคำนวณของคอมพิวเตอร์",
+        options: [
+          "HDD",
+          "SSD",
+          "RAM",
+          "CPU"
+        ],
+        ans: 3,
+        trick: "สมองและหน่วยคำนวณ (ALU) อยู่ใน CPU"
+      },
+      {
+        id: 15, cat: 2,
+        q: "ความถี่สัญญาณนาฬิกา หรือ CPU clock เกี่ยวข้องอย่างไรกับการทำงานของคอมพิวเตอร์",
+        options: [
+          "หากมีความถี่ที่สูงขึ้น จะทำงานได้หลายอย่างขึ้นในเวลาที่เท่ากัน",
+          "หากมีความถี่ที่สูงขึ้น จะส่งข้อมูลได้มากขึ้นในเวลาที่เท่ากัน",
+          "หากมีความถี่ที่สูงขึ้น จะเก็บข้อมูลที่เป็นรายละเอียดมากขึ้น",
+          "หากมีความถี่ที่สูงขึ้น จะคำนวณข้อมูลได้มากขึ้นในเวลาที่เท่ากัน"
+        ],
+        ans: 3,
+        trick: "CPU Clock สูง = รอบจังหวะต่อวินาทีถี่ขึ้น → 'คำนวณข้อมูลได้มากขึ้นในเวลาที่เท่ากัน'"
+      },
+      {
+        id: 16, cat: 2,
+        q: "หน่วยความจำใดที่ยังเก็บข้อมูลได้แม้ไม่มีไฟเลี้ยง",
+        options: [
+          "RAM",
+          "Disk",
+          "Cache",
+          "CPU"
+        ],
+        ans: 1,
+        trick: "RAM / Cache ไฟดับข้อมูลหายหมด ส่วน 'Disk' (HDD/SSD) เก็บข้อมูลถาวรแม้ไม่มีไฟเลี้ยง"
+      },
+      {
+        id: 17, cat: 2,
+        q: "ขั้นตอน decode instruction ใน pipeline ทำหน้าที่อะไร",
+        options: [
+          "อ่านคำสั่งของโปรแกรมมาในหน่วยความจำ",
+          "ตีความรหัสคำสั่งเพื่อเตรียมสั่งการส่วนต่างๆ ของคอมพิวเตอร์",
+          "คำนวณค่าผลลัพธ์",
+          "แปลงข้อมูลผลลัพธ์เพื่อเก็บในหน่วยความจำ"
+        ],
+        ans: 1,
+        trick: "Decode = ถอดรหัส / 'ตีความรหัสคำสั่ง' (Fetch=อ่าน, Decode=ตีความ, Execute=คำนวณ)"
+      },
+      {
+        id: 18, cat: 2,
+        q: "คอมพิวเตอร์ประกอบด้วยฮาร์ดแวร์ชิ้นต่างๆ จำนวนมาก การทำงานร่วมกันของอุปกรณ์ต่างๆ เหล่านี้เกิดขึ้นได้อย่างไร",
+        options: [
+          "โปรแกรมคอมพิวเตอร์ควบคุมและประสานงานการทำงานส่วนต่างๆ",
+          "หน่วยประมวลผลกลางรับคำสั่งและประมวลผลเป็นสัญญาณควบคุมการทำงานส่วนต่างๆ",
+          "ระบบปฏิบัติการดำเนินการควบคุมและประสานงานการทำงานส่วนต่างๆ",
+          "ผู้ควบคุมระบบคอมพิวเตอร์ ควบคุมการทำงานของฮาร์ดแวร์ส่วนต่างๆ"
+        ],
+        ans: 1,
+        trick: "ในระดับฮาร์ดแวร์ 'หน่วยประมวลผลกลาง (CPU)' ส่งสัญญาณไฟฟ้าไปควบคุมส่วนต่างๆ"
+      },
+      {
+        id: 19, cat: 2,
+        q: "มนุษย์สั่งการคอมพิวเตอร์ได้อย่างไร",
+        options: [
+          "ผ่านชุดคำสั่งซึ่งเป็นรหัสฐานสอง",
+          "ผ่านภาษาแอสเซมบลี",
+          "ผ่านภาษาโปรแกรมระดับสูง",
+          "ถูกทุกตัวเลือก"
+        ],
+        ans: 3,
+        trick: "สั่งได้ทั้งรหัสฐานสอง, แอสเซมบลี และภาษาระดับสูง → ถูกทุกตัวเลือก"
+      },
+      {
+        id: 20, cat: 2,
+        q: "ภาษาแอสเซมบลีคืออะไร",
+        options: [
+          "ภาษาโปรแกรมซึ่งเทียบเท่ากับภาษาเครื่อง แต่เขียนให้อยู่ในรูปแบบที่อ่านได้ง่ายขึ้น",
+          "ภาษาโปรแกรมระดับสูงที่มีโครงสร้างรองรับการทำงานที่หลากหลาย",
+          "ภาษาโปรแกรมกลางที่สามารถทำงานได้บนคอมพิวเตอร์หลายชนิด",
+          "ภาษาที่ใช้ในการกำหนดรูปแบบการทำงานร่วมกันของอุปกรณ์ในระบบคอมพิวเตอร์"
+        ],
+        ans: 0,
+        trick: "Assembly = ภาษาเครื่อง (0/1) ที่แปลงเป็นคำย่ออังกฤษให้ 'อ่านได้ง่ายขึ้น'"
+      },
+      {
+        id: 21, cat: 2,
+        q: "การมี core หรือแกนประมวลผลมากขึ้นมีประโยชน์อย่างไร",
+        options: [
+          "สามารถประมวลผลหลายงานพร้อมกันได้",
+          "สามารถแบ่งงานเป็นส่วนย่อยตามแกนต่างๆ ทำให้งานโดยรวมเสร็จเร็วขึ้น",
+          "สามารถแบ่งให้ผู้ใช้หลายๆ คนเข้ามาใช้งานพร้อมกันได้ โดยแบ่งแกนประมวลผลกันใช้",
+          "ถูกทุกตัวเลือก"
+        ],
+        ans: 0,
+        trick: "ข้อนี้ PDF เฉลยข้อแรก: หลาย Core = 'สามารถประมวลผลหลายงานพร้อมกันได้' (Multitasking)"
+      },
+      {
+        id: 22, cat: 2,
+        q: "ชุดคำสั่งภาษาเครื่องนั้นมีคำสั่งไม่มาก หากต้องการทำงานที่ไม่มีคำสั่งภาษาเครื่องโดยตรง ควรทำอย่างไร",
+        options: [
+          "ทำไม่ได้ เนื่องจากชุดคำสั่งไม่รองรับ",
+          "เปลี่ยนชุดคำสั่งให้รองรับการทำงานที่ต้องการ",
+          "นำชุดคำสั่งหลายๆ คำสั่งมาประกอบกันเพื่อทำงานตามที่ต้องการได้",
+          "ใช้ภาษาคอมพิวเตอร์ระดับสูง ซึ่งรองรับการทำงานที่หลากหลายขึ้น"
+        ],
+        ans: 2,
+        trick: "คำสั่งพื้นฐานมีน้อย (RISC) ก็แค่ 'นำคำสั่งย่อยๆ หลายคำสั่งมาประกอบกัน' เหมือนต่อเลโก้"
+      },
+      {
+        id: 23, cat: 2,
+        q: "ตัวเลือกใดเป็นหน้าที่ของระบบปฏิบัติการ",
+        options: [
+          "จัดการหน่วยความจำและไฟล์ต่างๆ",
+          "จัดสรรทรัพยากรในระบบ",
+          "ควบคุมสิทธิการใช้งานของผู้ใช้ในการเข้าถึงทรัพยากรต่างๆ",
+          "ถูกทุกตัวเลือก"
+        ],
+        ans: 3,
+        trick: "OS ดูแลทุกอย่างในเครื่อง: หน่วยความจำ + ทรัพยากร + สิทธิผู้ใช้ → ถูกทุกตัวเลือก"
+      },
+      {
+        id: 24, cat: 2,
+        q: "ตัวเลือกใดเป็นระบบปฏิบัติการ",
+        options: [
+          "Apple",
+          "Google",
+          "Microsoft",
+          "Android"
+        ],
+        ans: 3,
+        trick: "Apple, Google, Microsoft เป็นชื่อบริษัท มีแค่ 'Android' ที่เป็นระบบปฏิบัติการ (OS)"
+      },
+      {
+        id: 25, cat: 2,
+        q: "Device driver ทำหน้าที่อะไร",
+        options: [
+          "จัดสรรทรัพยากรในระบบให้กับอุปกรณ์ต่างๆ",
+          "ตรวจสอบการทำงานของฮาร์ดแวร์เมื่อเปิดเครื่อง",
+          "ช่วยให้อุปกรณ์ต่อพ่วงทำงานร่วมกับระบบปฏิบัติการได้",
+          "จัดการพลังงานของอุปกรณ์ต่อพ่วง"
+        ],
+        ans: 2,
+        trick: "Driver = ล่ามแปลภาษาช่วยให้ 'อุปกรณ์ต่อพ่วง' (เมาส์/ปริ้นเตอร์) คุยกับ OS รู้เรื่อง"
+      },
+      {
+        id: 26, cat: 2,
+        q: "เหตุใดจึงต้องมีซอฟต์แวร์หลากหลายประเภท",
+        options: [
+          "เพื่อความสะดวกในการบำรุงรักษา",
+          "เพื่อทำงานเฉพาะด้าน",
+          "เพื่อให้ทำงานได้ในทุกระบบปฏิบัติการ",
+          "เพื่อรองรับฮาร์ดแวร์ที่แตกต่างกัน"
+        ],
+        ans: 1,
+        trick: "โปรแกรมแต่งรูป โปรแกรมบัญชี เกม → มีหลากหลาย 'เพื่อทำงานเฉพาะด้าน'"
+      },
+      {
+        id: 27, cat: 2,
+        q: "เหตุใดการสร้างไฟล์ เช่น ไฟล์ภาพ JPG บนโทรศัพท์เคลื่อนที่สามารถนำไปเปิดบนเครื่องอื่น เช่น คอมพิวเตอร์ตั้งโต๊ะได้เช่นกัน แม้เครื่องทั้งสองจะมีสถาปัตยกรรมต่างกัน",
+        options: [
+          "เพราะใช้โปรแกรมเดียวกันในการอ่านไฟล์",
+          "เพราะโปรแกรมอ่านไฟล์สามารถทำงานได้ในทุกระบบปฏิบัติการ",
+          "เพราะโปรแกรมอ่านไฟล์เข้าใจข้อตกลงการเก็บข้อมูลของไฟล์นั้น",
+          "เพราะโปรแกรมอ่านไฟล์ทำงานได้ในทุกฮาร์ดแวร์"
+        ],
+        ans: 2,
+        trick: "JPG เป็นมาตรฐานสากล โปรแกรมเปิดได้เพราะ 'เข้าใจข้อตกลง (Format/Standard) การเก็บข้อมูลของไฟล์นั้น'"
+      },
+
+      // --- หมวดที่ 3: ข้อมูล การวิเคราะห์ข้อมูล และ Visualization (หน้า 9-11) ---
+      {
+        id: 28, cat: 3,
+        q: "ข้อใด ไม่ใช่ สาเหตุสำคัญที่ทำให้โลกทุกวันนี้ข้อมูลมีปริมาณเพิ่มมากขึ้น",
+        options: [
+          "ก. การทำธุรกรรมบนช่องทางดิจิทัลสามารถทำได้ง่ายและสะดวกกว่าวิธีอื่น ๆ",
+          "ข. ช่องทางดิจิทัลช่วยให้เราสามารถจัดเก็บข้อมูลเชิงพฤติกรรมได้ละเอียดมากขึ้น",
+          "ค. การทำแบบสำรวจ (Survey) สามารถทำได้ง่ายและมีผู้เข้าร่วมมากขึ้น",
+          "ง. อุปกรณ์ IoT ต่างๆ ที่ช่วยเพิ่มโอกาสในการเก็บข้อมูล"
+        ],
+        ans: 2,
+        trick: "ข้อมูลล้นโลกเกิดจากดิจิทัล + พฤติกรรมออนไลน์ + IoT ส่วน 'การทำแบบสำรวจ (Survey)' ไม่ใช่สาเหตุหลัก"
+      },
+      {
+        id: 29, cat: 3,
+        q: "ข้อใด ไม่ใช่ ตัวอย่างของการนำข้อมูลไปใช้ช่วยตัดสินใจ",
+        options: [
+          "ก. ติดตามแนวโน้มยอดขาย (Trend) เพื่อวางแผนการผลิตสินค้า",
+          "ข. วิเคราะห์พฤติกรรมการใช้งานเว็บไซต์ของผู้ใช้งานเพื่อเพิ่มอัตราการกลับมาใช้งาน (Retention Rate)",
+          "ค. กำหนดแผนการตลาดตามความคิดเห็นของเพื่อนร่วมงานที่มีประสบการณ์มากกว่า",
+          "ง. สร้างโมเดลสำหรับหากลุ่มลูกค้าที่มีโอกาสใช้คูปองส่วนลดสูง เพื่อใช้เป็นกลุ่มเป้าหมายในการยิงโฆษณา"
+        ],
+        ans: 2,
+        trick: "ใช้ 'ความคิดเห็นของเพื่อนร่วมงาน' คือใช้ความรู้สึกส่วนตัว ไม่ใช่ Data-driven!"
+      },
+      {
+        id: 30, cat: 3,
+        q: "หากกล่าวถึงความสามารถในการดูแลลูกค้าของธุรกิจด้วยการเปรียบเทียบเป็น \"จำได้ - รู้ใจ - เอาใจเป็น\" ลำดับนี้ตรงกับการดำเนินการในข้อใดมากที่สุด",
+        options: [
+          "ก. Database Design - Data Visualization - Data Analytics",
+          "ข. Data Collection - Data Analytics - Data-driven Actions",
+          "ค. Data Analytics - Recommendation Systems - IoT Applications",
+          "ง. Database Design - Statistical Analysis - Web Development"
+        ],
+        ans: 1,
+        trick: "จำได้ = เก็บข้อมูล (Collection) → รู้ใจ = วิเคราะห์ (Analytics) → เอาใจเป็น = ลงมือทำ (Data-driven Actions)"
+      },
+      {
+        id: 31, cat: 3,
+        q: "ข้อใดคือตัวอย่างการใช้ข้อมูลเพื่อ \"วัดผล\" (1) และ \"ทำนาย\" (2) ในเชิงธุรกิจ",
+        options: [
+          "ก. (1) ร้านค้าปลีกวิเคราะห์ข้อมูลยอดขายรายเดือนที่ผ่านมา เพื่อดูแนวโน้มการเติบโต (2) บริษัทประกันภัยใช้ข้อมูลลูกค้า เพื่อแบ่งกลุ่มลูกค้าตามความเสี่ยงในการเกิดอุบัติเหตุ",
+          "ข. (1) โรงแรมวิเคราะห์รีวิวจากลูกค้า เพื่อประเมินความพึงพอใจในบริการ (2) แพลตฟอร์ม Streaming ใช้ข้อมูลการรับชม เพื่อแนะนำภาพยนตร์ที่ผู้ใช้น่าจะสนใจ",
+          "ค. (1) บริษัทขนส่งอาหารวิเคราะห์ข้อมูลเส้นทางการเดินทาง เพื่อหาเส้นทางที่รวดเร็วที่สุด (2) ธนาคารใช้ข้อมูลเครดิต เพื่อประเมินความน่าเชื่อถือของผู้กู้",
+          "ง. (1) โรงพยาบาลบันทึกข้อมูลผู้ป่วยลงในฐานข้อมูลหลายแห่ง เพื่อประโยชน์ในการเก็บรักษาข้อมูลให้ปลอดภัย (2) บริษัทห้างสรรพสินค้าใช้ข้อมูลสภาพอากาศ เพื่อคาดการณ์ปริมาณลูกค้าในแต่ละวัน"
+        ],
+        ans: 1,
+        trick: "วัดผล = ประเมินความพึงพอใจรีวิวโรงแรม, ทำนาย = แนะนำหนังที่ผู้ใช้น่าจะชอบ (Streaming)"
+      },
+      {
+        id: 32, cat: 3,
+        q: "ข้อมูลดิบ (Raw Data) มักจะต้องผ่านกระบวนการใดก่อนนำไปวิเคราะห์?",
+        options: [
+          "ก. การทำ Data Visualization",
+          "ข. การทำ Data Cleaning",
+          "ค. การทำ Machine Learning",
+          "ง. การทำ Data Mining"
+        ],
+        ans: 1,
+        trick: "ข้อมูลดิบสกปรก ต้องล้างทำความสะอาดก่อน = 'Data Cleaning'"
+      },
+      {
+        id: 33, cat: 3,
+        q: "การตั้ง \"สมมติฐาน\" ในขณะที่เราเตรียมข้อมูล มีความเกี่ยวข้องกับการวิเคราะห์ข้อมูลอย่างไร?",
+        options: [
+          "ก. ช่วยให้เราสรุปข้อมูลได้อย่างรวดเร็ว",
+          "ข. ช่วยให้เราเลือกวิธีการในการเก็บข้อมูลได้ดี",
+          "ค. ช่วยให้เรามีหลักฐานเพื่อสนับสนุนข้อโต้แย้งของเรา",
+          "ง. ช่วยให้เรามีกรอบสำหรับการวิเคราะห์ข้อมูล"
+        ],
+        ans: 3,
+        trick: "ตั้งสมมติฐาน = วาง 'กรอบสำหรับการวิเคราะห์ข้อมูล' เพื่อไม่ให้หลงทาง"
+      },
+      {
+        id: 34, cat: 3,
+        q: "จากตารางข้อมูลด้านล่างนี้ ข้อใดเป็นปัญหาที่ทำให้เราควรทำ Data preparation ก่อนการวิเคราะห์ทางสถิติบนข้อมูลชุดนี้",
+        media: "q34_table",
+        options: [
+          "ก. การมีข้อมูลไม่เพียงพอที่จะวิเคราะห์เกี่ยวกับพฤติกรรมการซื้อของลูกค้า",
+          "ข. เครื่องดื่มชนิดเดียวกันถูกจำหน่ายในหลายช่องทาง",
+          "ค. ราคาเครื่องดื่มมีราคาสูงกว่าคู่แข่งในตลาดเดียวกัน",
+          "ง. ชื่อเครื่องดื่มประเภทเดียวกันมีความแตกต่างกันในแต่ละแถว"
+        ],
+        ans: 3,
+        trick: "ดูในตาราง: Cappu vs Cappuccino, Iced Coffee vs iced coffee → 'ชื่อเครื่องดื่มประเภทเดียวกันเขียนไม่เหมือนกัน'"
+      },
+      {
+        id: 35, cat: 3,
+        q: "ข้อใดเป็นเหตุผลหลักของการที่ Visualization ช่วยให้มนุษย์สามารถวิเคราะห์ข้อมูลได้ดีขึ้น",
+        options: [
+          "ก. Visualization ช่วยลดความซับซ้อนของข้อมูล โดยการจัดกลุ่มและสรุปข้อมูลให้อยู่ในรูปแบบที่เข้าใจง่าย",
+          "ข. Visualization ช่วยให้การเปรียบเทียบข้อมูลระหว่างกลุ่มต่าง ๆ เป็นไปได้อย่างแม่นยำ โดยไม่ต้องคำนวณตัวเลข",
+          "ค. Visualization สอดคล้องกับระบบการรับรู้ของมนุษย์ ซึ่งประมวลผลข้อมูลภาพได้รวดเร็วและมีประสิทธิภาพกว่าข้อมูลตัวเลข",
+          "ง. Visualization ช่วยลดข้อผิดพลาดในการวิเคราะห์ข้อมูล เนื่องจากข้อมูลที่แสดงเป็นภาพมีความถูกต้องมากกว่าข้อมูลตัวเลข"
+        ],
+        ans: 2,
+        trick: "สมองมนุษย์ประมวลผล 'ภาพ' ได้เร็วกว่าตัวเลขตาราง → ตอบข้อ ค. ระบบการรับรู้ของมนุษย์"
+      },
+      {
+        id: 36, cat: 3,
+        q: "Visualization ในข้อใดเหมาะสมในการนำเสนอ \"แนวโน้มยอดขายที่เปลี่ยนแปลงไปในแต่ละเดือน\"",
+        options: [
+          "ก. แผนภูมิแท่งที่มีแกนตั้งเป็นยอดขายในหน่วยพันบาท และแกนนอนเป็นเวลา",
+          "ข. แผนภูมิวงกลมที่แต่ละชิ้นมีขนาดแปรตามสัดส่วนยอดขายในแต่ละเดือน",
+          "ค. แผนภูมิเส้นที่มีแกนตั้งแสดงเดือนทั้ง 12 ในหนึ่งปี และแกนนอนเป็นยอดขายที่แบ่งเป็นช่วงชั้น อันได้แก่ \"ต่ำกว่า 10,000 บาท\" \"10,000 - 50,000 บาท\" และ \"มากกว่า 50,000 บาท\"",
+          "ง. ตารางข้อมูลสองคอลัมน์ \"เดือน\" และ \"ยอดขาย (หน่วยพันบาท)\""
+        ],
+        ans: 0,
+        trick: "แกนนอนต้องเป็น 'เวลา' แกนตั้งเป็น 'ยอดขาย' (ข้อ ค. สลับแกนและแบ่งช่วงมั่ว จึงต้องตอบ ก. แผนภูมิแท่ง)"
+      },
+      {
+        id: 37, cat: 3,
+        q: "ข้อใด ไม่สามารถ สรุปได้จากแผนภูมิด้านล่างนี้",
+        media: "q37_chart",
+        options: [
+          "ก. ช่วงเวลาที่มีสัดส่วนรายได้จากการเข้ามาใช้บริการที่ร้านมากที่สุด",
+          "ข. สัดส่วนรายได้จากการเข้ามาใช้บริการที่ร้านในช่วงพักกลางวันของบริษัทในละแวกร้านเมื่อเทียบกับ Takeaway",
+          "ค. ความแตกต่าง (ในหน่วยพันบาท) ระหว่างรายได้จากการเข้ามาใช้บริการที่ร้านกับรายได้จากช่องทาง Delivery",
+          "ง. ช่องทางที่สร้างรายได้มากที่สุดในแต่ละชั่วโมงของวัน"
+        ],
+        ans: 2,
+        trick: "กราฟแกนตั้งเป็น 0%-100% (สัดส่วนร้อยละ) ไม่ใช่จำนวนเงินบาท จึงหา 'ความแตกต่างในหน่วยพันบาท' ไม่ได้!"
+      },
+
+      // --- หมวดที่ 4: พื้นฐาน Python, Jupyter Notebook, ตัวแปร และ Operators (หน้า 12-25) ---
+      {
+        id: 38, cat: 4,
+        q: "ข้อใดกล่าวไม่ถูกต้องเกี่ยวกับ Python",
+        options: [
+          "Python เป็น General-purpose programming language",
+          "Python เป็น Multi-paradigm programming language",
+          "Python จัดเป็น Low-level language",
+          "ไม่มีข้อใดผิด"
+        ],
+        ans: 2,
+        trick: "Python อ่านง่ายใกล้ภาษามนุษย์ เป็น High-level language ไม่ใช่ Low-level!"
+      },
+      {
+        id: 39, cat: 4,
+        q: "ข้อใดกล่าวไม่ถูกต้องเกี่ยวกับตัวแปลภาษา",
+        options: [
+          "Compiler จะแปล code ไปในทีเดียวไปเป็น Machine Language",
+          "Interpreter จะแปล code ทีละคำสั่งไปเป็น Machine Language",
+          "Interpreter จะแปล code ทั้งโปรแกรมในทีเดียวเป็น Machine Language",
+          "Python ใช้ตัวแปลภาษาแบบ Interpreter"
+        ],
+        ans: 2,
+        trick: "Interpreter แปล 'ทีละคำสั่ง' ไม่ได้แปลทั้งโปรแกรมในทีเดียว (อันนั้นคือ Compiler)"
+      },
+      {
+        id: 40, cat: 4,
+        q: "Byte code ของ Python (.pyo / .pyc) จะถูก execute บนอะไร",
+        options: [
+          "CPU",
+          "Virtual machine",
+          "ถูกทั้ง a และ b",
+          "ผิดทั้ง a และ b"
+        ],
+        ans: 1,
+        trick: "Python Bytecode รันบน Python Virtual Machine (PVM) → ตอบ Virtual machine"
+      },
+      {
+        id: 41, cat: 4,
+        q: "Dynamically-typed language หมายความว่าอะไร",
+        options: [
+          "ประเภทของตัวแปรถูกตัดสินตอน Run-Time จึงไม่ต้องกำหนดประเภทของตัวแปรก่อนใช้งาน",
+          "ประเภทของตัวแปรถูกตัดสินตอน Run-Time จึงต้องกำหนดประเภทของตัวแปรก่อนใช้งานเสมอ",
+          "ประเภทของตัวแปรถูกตัดสินก่อน Run-Time จึงต้องกำหนดประเภทของตัวแปรก่อนใช้งานเสมอ",
+          "ประเภทของตัวแปรถูกตัดสินก่อน Run-Time จึงไม่ต้องกำหนดประเภทของตัวแปรก่อนใช้งาน"
+        ],
+        ans: 0,
+        trick: "Dynamic = ยืดหยุ่นตัดสิน 'ตอน Run-Time' + 'ไม่ต้องกำหนดประเภทตัวแปรก่อน'"
+      },
+      {
+        id: 42, cat: 4,
+        q: "ข้อใดกล่าวถูกต้องเกี่ยวกับการเขียนโปรแกรมด้วย Python",
+        options: [
+          "หากใช้ Interactive mode จะสามารถรันได้ทีละคำสั่ง",
+          "Script mode จะต้องบันทึกเป็นไฟล์ .py ก่อนจึงจะรันได้ทั้งโปรแกรมในทีเดียว",
+          "IDLE และ Jupyter notebook เป็น IDE",
+          "ถูกทุกข้อ"
+        ],
+        ans: 3,
+        trick: "Interactive ทีละบรรทัด + Script ไฟล์ .py + IDLE/Jupyter เป็น IDE → ถูกทุกข้อ"
+      },
+      {
+        id: 43, cat: 4,
+        q: "ข้อใดกล่าวถึง Jupyter notebook ได้ถูกต้องที่สุด",
+        options: [
+          "Jupyter notebook เป็นโปรแกรมสำหรับเขียน Python บนระบบปฏิบัติการ Windows เท่านั้น",
+          "Jupyter notebook เป็นโปรแกรมสำหรับเขียนโปรแกรมภาษา Python แบบ Interactive เท่านั้น",
+          "Jupyter notebook เป็นโปรแกรมที่เราสามารถเขียนโปรแกรมและข้อความอื่นๆ ผ่านส่วนติดต่อผู้ใช้แบบ Web browser",
+          "Jupyter notebook เป็นโปรแกรม Word processor ทางเลือกที่ไม่มีค่าใช้จ่ายในการใช้งาน"
+        ],
+        ans: 2,
+        trick: "Jupyter Notebook เปิดใช้งานผ่าน 'Web browser' เขียนได้ทั้งโค้ดและข้อความ"
+      },
+      {
+        id: 44, cat: 4,
+        q: "ไฟล์สมุดโน้ตใน Jupyter notebook จะบันทึกเป็นไฟล์นามสกุลใด",
+        options: [
+          ".jupyter",
+          ".ipynb",
+          ".txt",
+          ".py"
+        ],
+        ans: 1,
+        trick: "IPython Notebook = .ipynb"
+      },
+      {
+        id: 45, cat: 4,
+        q: "อะไรเป็นหัวใจหลักที่ทำให้ Jupyter notebook เข้าใจภาษาโปรแกรมภาษาต่างๆ",
+        options: [
+          "Python",
+          "Kernel",
+          "ไฟล์ config",
+          "IPython"
+        ],
+        ans: 1,
+        trick: "ตัวประมวลผลเบื้องหลัง Jupyter เรียกว่า 'Kernel'"
+      },
+      {
+        id: 46, cat: 4,
+        q: "Cell ประเภทใดใน Jupyter notebook ที่เหมาะสมในการเขียนบรรยายเนื้อหา",
+        options: [
+          "Descriptive Cell",
+          "Text cell",
+          "Markdown cell",
+          "Code cell"
+        ],
+        ans: 2,
+        trick: "เขียนบรรยายจัดหัวข้อใน Jupyter ใช้ 'Markdown cell'"
+      },
+      {
+        id: 47, cat: 4,
+        q: "Code cell ใน Jupyter notebook ใช้สำหรับทำงานใด",
+        options: [
+          "คัดลอกข้อความจาก Cell อื่น",
+          "บรรยายเนื้อหา",
+          "การวางข้อความที่เป็นความลับ",
+          "เขียนโปรแกรม"
+        ],
+        ans: 3,
+        trick: "Code cell ตรงตัว = 'เขียนโปรแกรม'"
+      },
+      {
+        id: 48, cat: 4,
+        q: "ถ้าสมุดโน้ต ณ ตอนนี้มี 3 cell และ cell ปัจจุบันอยู่ที่ cell สุดท้าย หลังจากการกดปุ่ม Shift+Enter สมุดโน้ตจะมีกี่ cell",
+        options: [
+          "3 cell",
+          "4 cell",
+          "5 cell",
+          "2 cell"
+        ],
+        ans: 1,
+        trick: "อยู่ 'cell สุดท้าย' กด Shift+Enter จะรันแล้วสร้าง cell ใหม่ต่อท้ายให้ 1 อัน → 3 + 1 = 4 cell"
+      },
+      {
+        id: 49, cat: 4,
+        q: "สัญลักษณ์ใดที่ใช้ใน Markdown เพื่อทำหัวข้อเรื่อง",
+        options: [
+          "###",
+          "***",
+          "---",
+          "///"
+        ],
+        ans: 0,
+        trick: "หัวข้อ Heading ใน Markdown ใช้เครื่องหมาย # (เช่น #, ##, ###)"
+      },
+      {
+        id: 50, cat: 4,
+        q: "ปุ่มใดเป็นปุ่มลัดที่ใช้ในการเปลี่ยนประเภทของ cell เมื่ออยู่ใน Command mode",
+        options: [
+          "m, y",
+          "Shift+Enter",
+          "ปุ่มลูกศรขึ้นลง",
+          "Enter, Esc"
+        ],
+        ans: 0,
+        trick: "m = Markdown, y = Code (pYthon) → จำคู่ปุ่ม 'm, y'"
+      },
+      {
+        id: 51, cat: 4,
+        q: "หากต้องการแสดง block ของโค้ดใน Markdown cell เราสามารถทำได้อย่างไร",
+        options: [
+          "ใส่เครื่องหมาย - และตามด้วยเว้นวรรคในส่วนต้นของบรรทัดของโค้ดที่อยู่ใน Block เดียวกัน",
+          "ใส่เครื่องหมาย * จำนวนเท่ากันในส่วนต้นของบรรทัดของโค้ดที่อยู่ใน Block เดียวกัน",
+          "เราไม่สามารถแสดงโค้ดใน Markdown cell ได้",
+          "ใส่ space จำนวนเท่ากันแต่ต้องอย่างน้อย 4 ตัวในส่วนต้นของบรรทัดของโค้ดที่อยู่ใน Block เดียวกัน"
+        ],
+        ans: 3,
+        trick: "Code Block ใน Markdown ต้องเคาะเว้นวรรค (space) อย่างน้อย 4 ตัวด้านหน้า"
+      },
+      {
+        id: 52, cat: 4,
+        q: "การ Debug หมายถึงอะไร",
+        options: [
+          "การออกแบบขั้นตอนการทำงานของโปรแกรม",
+          "การเรียนรู้ไวยากรณ์ของภาษาโปรแกรม",
+          "การรันโปรแกรมบน Kernel",
+          "การแก้ไขข้อผิดพลาดของโปรแกรม"
+        ],
+        ans: 3,
+        trick: "Bug = ข้อผิดพลาด, Debug = กำจัด/แก้ไขข้อผิดพลาดของโปรแกรม"
+      },
+      {
+        id: 53, cat: 4,
+        q: "ภาษาโปรแกรมที่เรียกว่าเป็น case sensitive มีความหมายว่าอย่างไร",
+        options: [
+          "มีการรองรับการตรวจสอบเงื่อนไขเพื่อเลือกเส้นทางการทำงานของโปรแกรม",
+          "มีความซับซ้อนในการทำงานในระดับที่สูง",
+          "มองว่า lowercase letter และ uppercase letter ของตัวอักษรอังกฤษเดียวกันต่างกัน",
+          "ไม่สามารถเขียนคำสั่งหลายคำสั่งในบรรทัดเดียวกันได้"
+        ],
+        ans: 2,
+        trick: "Case sensitive = แคร์ตัวพิมพ์เล็ก/ใหญ่ (a กับ A ถือเป็นคนละตัว)"
+      },
+      {
+        id: 54, cat: 4,
+        q: "เมื่อรันโปรแกรมต่อไปนี้จะเกิดผลลัพธ์ใด",
+        code: `print("Hello A")\nprint("Hello B")\nPrint("Hello C")`,
+        options: [
+          "name 'Print' is not defined",
+          "unexpected indent",
+          "type mismatched",
+          "ไม่เกิดข้อผิดพลาดใดๆ"
+        ],
+        ans: 0,
+        trick: "บรรทัด 3 เขียน Print ตัว P ใหญ่ Python ไม่รู้จัก → name 'Print' is not defined"
+      },
+      {
+        id: 55, cat: 4,
+        q: "ข้อใดไม่ใช่ data type พื้นฐานในภาษา Python",
+        options: [
+          "num",
+          "complex",
+          "float",
+          "int"
+        ],
+        ans: 0,
+        trick: "ตัวเลขใน Python มี int, float, complex ไม่มีคำว่า 'num'"
+      },
+      {
+        id: 56, cat: 4,
+        q: "ข้อใดเป็น data type ในภาษา Python สำหรับเก็บข้อความ และค่าความจริง ตามลำดับ",
+        options: [
+          "String, Boolean",
+          "String, True",
+          "str, bool",
+          "Str, Boolean"
+        ],
+        ans: 2,
+        trick: "ใน Python ใช้ชื่อย่อตัวพิมพ์เล็กทั้งหมด: 'str, bool'"
+      },
+      {
+        id: 57, cat: 4,
+        q: "ข้อใดกล่าวถูกต้องเกี่ยวกับ data type",
+        options: [
+          "ภาษาคอมพิวเตอร์ทุกภาษารองรับจำนวนและความหลากหลายของ Data type เท่ากัน",
+          "ในภาษา Python มีเพียง Data type ที่ไว้เพื่อรองรับตัวเลข ข้อความ และค่าความจริงเท่านั้น",
+          "การจำแนก Data type ไม่ได้ช่วยป้องกันการทำงานผิดพลาดของโปรแกรม แต่ช่วยให้ประสิทธิภาพการทำงานเร็วขึ้น",
+          "Python สามารถจำแนก Data type ประเภทตัวเลขและข้อความได้จากรูปแบบข้อมูลที่เราพิมพ์ในโปรแกรม"
+        ],
+        ans: 3,
+        trick: "พิมพ์ 10 รู้ว่าเป็น int, พิมพ์ '10' รู้ว่าเป็น str → จำแนกได้จากรูปแบบข้อมูลที่พิมพ์"
+      },
+      {
+        id: 58, cat: 4,
+        q: "ข้อใดกล่าวถูกต้องเกี่ยวกับตัวแปร",
+        options: [
+          "ในสมุดโน้ตเดียวกัน เราสามารถใช้ค่าของตัวแปรข้าม cell ได้",
+          "ค่าที่ถูกจัดสรรให้กับตัวแปรยังคงถูกเก็บรักษาไว้หลังจากปิดโปรแกรม Jupyter notebook",
+          "ในภาษา Python จะต้องสร้างตัวแปรใน statement แรกก่อน จึงจะสามารถจัดสรรค่าให้ตัวแปรใน statement ถัดไปได้",
+          "ตัวแปรที่เก็บประเภทตัวเลขไม่สามารถนำมาเก็บค่าข้อความในภายหลังได้"
+        ],
+        ans: 0,
+        trick: "Jupyter ใช้ Kernel เดียวกันทั้งไฟล์ จึงเรียกใช้ตัวแปรข้าม cell ได้"
+      },
+      {
+        id: 59, cat: 4,
+        q: "ข้อใดเป็น statement ที่ถูกต้องในการ assign ค่าตัวแปร",
+        options: [
+          "a = b == 1",
+          "a = 1, b = 1",
+          "a = 1 = b",
+          "a = b = 1"
+        ],
+        ans: 3,
+        trick: "กำหนดค่าพร้อมกันหลายตัวแปรใช้เครื่องหมาย = ต่อกันได้: a = b = 1"
+      },
+      {
+        id: 60, cat: 4,
+        q: "ข้อใดเป็นชื่อตัวแปรที่สามารถใช้ได้ในภาษา Python",
+        options: [
+          "1_or_2",
+          "one_or_2",
+          "one-or-two",
+          "Val-1-2"
+        ],
+        ans: 1,
+        trick: "ห้ามขึ้นต้นด้วยตัวเลข (1_or_2 ผิด) ห้ามมีขีดกลาง - (one-or-two ผิด) ใช้ _ ได้ → one_or_2"
+      },
+      {
+        id: 61, cat: 4,
+        q: "ข้อใดเป็นการแสดงผลของคำสั่ง print(3 % 1)",
+        code: `print(3 % 1)`,
+        options: [
+          "3",
+          "1",
+          "0",
+          "Error"
+        ],
+        ans: 2,
+        trick: "% คือหารเอาเศษ: 3 หาร 1 ลงตัวเป๊ะ เหลือเศษ 0"
+      },
+      {
+        id: 62, cat: 4,
+        q: "ข้อใดเป็นการแสดงผลของคำสั่ง print(13 // 2)",
+        code: `print(13 // 2)`,
+        options: [
+          "1",
+          "6",
+          "6.5",
+          "7"
+        ],
+        ans: 1,
+        trick: "// คือหารปัดเศษทิ้ง (Floor division): 13 / 2 = 6.5 ตัด .5 ทิ้งเหลือ 6"
+      },
+      {
+        id: 63, cat: 4,
+        q: "ข้อใดเป็นผลลัพธ์ของโปรแกรมต่อไปนี้",
+        code: `x = 2\nx += 4\nprint(x)`,
+        options: [
+          "2",
+          "4",
+          "6",
+          "8"
+        ],
+        ans: 2,
+        trick: "x เริ่มที่ 2 แล้วบวกเพิ่มอีก 4 (2 + 4) = 6"
+      },
+      {
+        id: 64, cat: 4,
+        q: "ข้อใดไม่ใช่ expression ในภาษา Python",
+        options: [
+          "3.5",
+          "3 + 5",
+          "print(3 + 5)",
+          "ทุกข้อเป็น Expression ทั้งหมด"
+        ],
+        ans: 2,
+        trick: "print(3 + 5) เป็นคำสั่ง (Statement) เพื่อแสดงผล ไม่ใช่ Expression"
+      },
+      {
+        id: 65, cat: 4,
+        q: "สิ่งใดเป็นตัวกำหนดลำดับก่อนหลังของการดำเนินการ operator ใน expression ที่มี operator หลายตัว",
+        options: [
+          "ลำดับ precedence ของ operator",
+          "ค่าของ operand ที่อยู่ติดกับ operator",
+          "ลำดับการวาง operator ใน expression",
+          "ลำดับ precedence ของ operand"
+        ],
+        ans: 0,
+        trick: "ลำดับความสำคัญของเครื่องหมายเรียกว่า 'Operator precedence'"
+      },
+      {
+        id: 66, cat: 4,
+        q: "จงประมวลผลค่า expression ต่อไปนี้ (หน้า 20: 3 + 4 * 16 / 2)",
+        code: `3 + 4 * 16 / 2`,
+        options: [
+          "30",
+          "42",
+          "8.0",
+          "35"
+        ],
+        ans: 3,
+        trick: "ทำคูณหารก่อนบวก: 4 * 16 = 64 → 64 / 2 = 32 → 3 + 32 = 35"
+      },
+      {
+        id: 67, cat: 4,
+        q: "ค่าของ expression not (not True) คือข้อใด",
+        code: `not (not True)`,
+        options: [
+          "True",
+          "False",
+          "None",
+          "Error"
+        ],
+        ans: 0,
+        trick: "นิเสธซ้อนนิเสธ (not False) กลับมาเป็น True"
+      },
+      {
+        id: 68, cat: 4,
+        q: "ค่าของ expression (5 > 3) and (2 > 4) คือข้อใด",
+        code: `(5 > 3) and (2 > 4)`,
+        options: [
+          "3",
+          "5",
+          "True",
+          "False"
+        ],
+        ans: 3,
+        trick: "True and False → เมื่อเชื่อมด้วย and มี False ตัวเดียวผลลัพธ์เป็น False ทันที"
+      },
+      {
+        id: 69, cat: 4,
+        q: "ข้อใดกล่าวถูกต้องเกี่ยวกับ function",
+        options: [
+          "เราสามารถสร้าง built-in function ได้ใน Jupyter Notebook",
+          "เราสามารถเรียกใช้ built-in function ได้โดยไม่ต้องสร้าง function เหล่านั้นขึ้นมาเอง",
+          "function เป็น data type ประเภทหนึ่งในภาษา Python",
+          "ถูกทุกข้อ"
+        ],
+        ans: 1,
+        trick: "Built-in function ติดมากับ Python อยู่แล้ว เรียกใช้ได้เลยไม่ต้องสร้างเอง"
+      },
+      {
+        id: 70, cat: 4,
+        q: "statement ใดเป็นการเรียกใช้ function",
+        options: [
+          "x = (x + 1)",
+          "x = abs(x)",
+          "x = abs.x",
+          "x = abs[x]"
+        ],
+        ans: 1,
+        trick: "เรียกใช้ฟังก์ชันต้องมีวงเล็บกลมต่อท้ายชื่อฟังก์ชัน: abs(x)"
+      },
+      {
+        id: 71, cat: 4,
+        q: "ข้อใดเป็นการระบุค่า argument ของ pow() แบบ Positional และผลลัพธ์ที่สอดคล้องกับมันเป็นเท่าใด",
+        options: [
+          "pow(base=3, exp=2) ผลลัพธ์เป็น 9",
+          "pow(exp=3, base=2) ผลลัพธ์เป็น 8",
+          "pow(2, 3) ผลลัพธ์เป็น 9",
+          "pow(2, 3) ผลลัพธ์เป็น 8"
+        ],
+        ans: 3,
+        trick: "Positional คือใส่แค่ค่าเรียงตามตำแหน่ง (ไม่ใส่ชื่อ): pow(2, 3) = 2 ยกกำลัง 3 = 8"
+      },
+      {
+        id: 72, cat: 4,
+        q: "ให้ function func1() มี definition ส่วนหัวเป็น def func1(arg1, arg2, *arg3): ในการเรียกใช้ func1() จะต้องมีการใส่ argument จำนวนกี่ค่า",
+        code: `def func1(arg1, arg2, *arg3):`,
+        options: [
+          "3 ค่า",
+          "อย่างน้อย 3 ค่า",
+          "ตั้งแต่ 2 ค่าขึ้นไป",
+          "กี่ค่าก็ได้"
+        ],
+        ans: 2,
+        trick: "arg1, arg2 บังคับใส่ (2 ค่า) ส่วน *arg3 ใส่ 0 หรือกี่ตัวก็ได้ → 'ตั้งแต่ 2 ค่าขึ้นไป'"
+      },
+      {
+        id: 73, cat: 4,
+        q: "ให้ function func2() มี definition ส่วนหัวเป็น def func2(*arg1, arg2=True): ในการเรียกใช้ func2() จะต้องมีการใส่ argument จำนวนกี่ค่า",
+        code: `def func2(*arg1, arg2=True):`,
+        options: [
+          "1 ค่า",
+          "2 ค่า",
+          "อย่างน้อย 1 ค่า",
+          "กี่ค่าก็ได้"
+        ],
+        ans: 3,
+        trick: "*arg1 ใส่ 0 ตัวก็ได้ และ arg2 มีค่าเริ่มต้นแล้ว → ไม่ใส่เลยหรือใส่ 'กี่ค่าก็ได้'"
+      },
+      {
+        id: 74, cat: 4,
+        q: "การคำนวณของ binary operator ที่มี operand ทั้งสองเป็น data type เดียวกัน จะได้ผลลัพธ์เป็น data type เดียวกับ data type ของ operand ทั้งสอง เป็นจริงหรือเท็จ",
+        options: [
+          "เป็นจริงในบางสถานการณ์ แต่ไม่เสมอไป",
+          "เป็นเท็จในทุกๆ สถานการณ์",
+          "เป็นจริงในทุกๆ สถานการณ์",
+          "ไม่สามารถสรุปได้ เพราะ data type ของผลลัพธ์ไม่ขึ้นกับ data type ของ operand"
+        ],
+        ans: 0,
+        trick: "เช่น int หาร int (4 / 2) ใน Python 3 ได้ float (2.0) ไม่ใช่ int → 'เป็นจริงในบางสถานการณ์ แต่ไม่เสมอไป'"
+      },
+      {
+        id: 75, cat: 4,
+        q: "Polymorphic operator หมายถึงอะไร",
+        options: [
+          "operator ที่มีการทำงานเหมือนกับ operator ตัวอื่นมากกว่า 1 ตัว",
+          "operator ที่สามารถมี operand ได้มากกว่า 2 ค่า",
+          "operator ที่ใช้ในการแปลง data type ของ expression ให้เป็น data type ตามที่ต้องการ",
+          "operator ที่มีสัญลักษณ์เดียวกัน แต่การทำงานเปลี่ยนไปตาม data type ของ operand ที่ถูกเรียกใช้งาน"
+        ],
+        ans: 3,
+        trick: "Poly = หลายรูปแบบ: เช่น + เจอตัวเลขคือบวก เจอข้อความคือต่อคำ → 'สัญลักษณ์เดียวกัน แต่ทำงานเปลี่ยนไปตาม data type'"
+      },
+      {
+        id: 76, cat: 4,
+        q: "statement ใดเกิด error เมื่อรัน",
+        options: [
+          "print(1 + '2')",
+          "print(1 + 2)",
+          "print('1' + '2')",
+          "print('1' * 2)"
+        ],
+        ans: 0,
+        trick: "เอาตัวเลข (int) มาบวกกับข้อความ (str) ตรงๆ ไม่ได้ → TypeError ใน print(1 + '2')"
+      },
+      {
+        id: 77, cat: 4,
+        q: "ข้อใดเกิด implicit data type conversion เป็น data type float",
+        options: [
+          "3.0 + 2.5 ผลลัพธ์เป็น float",
+          "3 + 2.0 ผลลัพธ์เป็น float",
+          "3 + 2.0 ผลลัพธ์เป็น int",
+          "3.0 + 2.0 ผลลัพธ์เป็น int"
+        ],
+        ans: 1,
+        trick: "Implicit = แปลงอัตโนมัติเมื่อชนิดต่างกัน: int (3) + float (2.0) → แปลงเป็น float อัตโนมัติ"
+      },
+      {
+        id: 78, cat: 4,
+        q: "function ใดเป็น Typecasting function",
+        options: [
+          "type()",
+          "int()",
+          "pow()",
+          "cast()"
+        ],
+        ans: 1,
+        trick: "Typecasting = แปลงชนิดข้อมูล เช่น int(), float(), str()"
+      },
+      {
+        id: 79, cat: 4,
+        q: "หากเราดำเนินการ import math as m แล้ว statement ในข้อใดสามารถเรียกใช้ function ในการหารากที่สองจาก math ได้อย่างถูกต้อง",
+        options: [
+          "a. m.sqrt(144)",
+          "b. math.sqrt(144)",
+          "ถูกทั้ง a และ b",
+          "ผิดทั้ง a และ b"
+        ],
+        ans: 0,
+        trick: "ตั้งชื่อเล่นว่า as m แล้ว ต้องเรียกผ่าน m เท่านั้น → m.sqrt(144)"
+      },
+      {
+        id: 80, cat: 4,
+        q: "ข้อใดกล่าวถูกต้องเกี่ยวกับ module math",
+        options: [
+          "a. math เป็น built-in module ของภาษา Python ดังนั้นเราสามารถใช้ function ต่าง ๆ ใน math ได้โดยไม่ต้อง import",
+          "b. math เป็น built-in module ของภาษา Python ดังนั้นเราสามารถใช้ math ได้โดยไม่ต้องทำการติดตั้ง module เพิ่มเติม",
+          "ถูกทั้ง a และ b",
+          "ผิดทั้ง a และ b"
+        ],
+        ans: 1,
+        trick: "math ติดมากับ Python ไม่ต้อง pip install เพิ่ม แต่ยังต้อง import math ก่อนใช้ → ตอบข้อ b"
+      },
+      {
+        id: 81, cat: 4,
+        q: "function ที่สามารถแสดงรายละเอียดของ module ได้คือข้อใด",
+        options: [
+          "help()",
+          "type()",
+          "module()",
+          "ไม่มี function ที่สามารถทำเช่นนั้นได้ ควรหาแหล่งอ้างอิงจากอินเทอร์เน็ต"
+        ],
+        ans: 0,
+        trick: "ขอดูคู่มือ/รายละเอียดของ module หรือฟังก์ชัน ใช้ help()"
+      },
+      {
+        id: 82, cat: 4,
+        q: "หากต้องการตรวจนับความยาวของ string 'Vaccine' ต้องใช้คำสั่งใด",
+        options: [
+          "length('Vaccine')",
+          "len('Vaccine')",
+          "Length('Vaccine')",
+          "Len('Vaccine')"
+        ],
+        ans: 1,
+        trick: "นับความยาวใน Python ใช้ตัวพิมพ์เล็กสั้นๆ: len()"
+      },
+      {
+        id: 83, cat: 4,
+        q: "กำหนดให้ s = \"Hello, it's me\" ผลลัพธ์ของ s[1] คือข้อใด (หน้า 25)",
+        code: `s = "Hello, it's me"\nprint(s[1])`,
+        options: [
+          "e",
+          "H",
+          "o",
+          "IndexError: string index out of range"
+        ],
+        ans: 0,
+        trick: "Index เริ่มนับจาก 0: s[0] คือ 'H', ดังนั้น s[1] คือ 'e'"
+      },
+      {
+        id: 84, cat: 4,
+        q: "กำหนดให้ s = 'Cat' ข้อใดถูกต้อง",
+        options: [
+          "หากต้องการเปลี่ยน s เป็น 'Rat' สามารถใช้คำสั่ง s[0] = 'R'",
+          "String method ที่ชื่อ upper() จะไปเปลี่ยนค่าในตัวแปร s โดยตรง",
+          "หากต้องการเปลี่ยน s เป็น 'CAT' สามารถใช้คำสั่ง s = s.upper()",
+          "ถูกทุกข้อ"
+        ],
+        ans: 2,
+        trick: "String เป็น immutable แก้ตรงๆ ไม่ได้ ต้องรับค่ากลับเข้าตัวแปรเดิม: s = s.upper()"
+      },
+      {
+        id: 85, cat: 4,
+        q: "กำหนดให้ s = 'Dog' ผลลัพธ์ของ s.find('g') คือข้อใด",
+        code: `s = 'Dog'\nprint(s.find('g'))`,
+        options: [
+          "0",
+          "2",
+          "3",
+          "-1"
+        ],
+        ans: 1,
+        trick: "D=0, o=1, g=2 → ตัว 'g' อยู่ที่ index 2"
+      },
+
+      // --- หมวดที่ 5: เงื่อนไข ลูป และโครงสร้างข้อมูล (หน้า 26-44) ---
+      {
+        id: 86, cat: 5,
+        q: "สัญลักษณ์รูปสี่เหลี่ยมขนมเปียกปูนใน Flowchart หมายถึงอะไร",
+        options: [
+          "เริ่มต้น/สิ้นสุด",
+          "ตัดสินใจ (Decision)",
+          "แสดงผล",
+          "ประมวลผล"
+        ],
+        ans: 1,
+        trick: "สี่เหลี่ยมขนมเปียกปูน (ข้าวหลามตัด) แยกทางซ้าย/ขวา = 'ตัดสินใจ (Decision)'"
+      },
+      {
+        id: 87, cat: 5,
+        q: "หลังรันคำสั่งต่อไปนี้ ค่าของ a เป็นเท่าใด",
+        code: `a = 2\nif a > 1:\n    a += 1\nelif a >= 2:\n    a += 2`,
+        options: [
+          "0",
+          "2",
+          "3",
+          "4"
+        ],
+        ans: 2,
+        trick: "เข้าเงื่อนไขแรก if a > 1 จริง (a=2+1=3) แล้วจบเลย ไม่ทำ elif ต่อ → ได้ 3"
+      },
+      {
+        id: 88, cat: 5,
+        q: "หลังจากรันโค้ดต่อไปนี้ จะแสดงผลอย่างไร",
+        code: `if False and True:\n    print("ฝนตก")\nelse:\n    print("แดดออก")`,
+        options: [
+          "แดดออก",
+          "ฝนตกแดดออก",
+          "ฝนตก",
+          "ไม่แสดงผลใดๆ"
+        ],
+        ans: 0,
+        trick: "False and True ได้ False จึงกระโดดลง else → พิมพ์ 'แดดออก'"
+      },
+      {
+        id: 89, cat: 5,
+        q: "หลังจากรันโค้ดต่อไปนี้ จะแสดงผลอย่างไร",
+        code: `rain = False or True\nif not rain:\n    print("กบไม่ร้อง")\nelse:\n    print("กบร้อง")`,
+        options: [
+          "กบไม่ร้อง กบร้อง",
+          "กบร้อง",
+          "กบไม่ร้อง",
+          "ไม่แสดงผลใดๆ"
+        ],
+        ans: 1,
+        trick: "rain = True → not rain เป็น False → ลง else พิมพ์ 'กบร้อง'"
+      },
+      {
+        id: 90, cat: 5,
+        q: "ข้อใดกล่าวไม่ถูกต้องเกี่ยวกับ while loop",
+        options: [
+          "while loop จะทำตามคำสั่งใน loop เมื่อเงื่อนไขเป็นจริง",
+          "while loop เป็น definite loop",
+          "while loop ต้องมี iteration variable เพื่อให้สามารถหลุดออกจาก loop ได้",
+          "ไม่มีข้อใดผิด"
+        ],
+        ans: 1,
+        trick: "for loop = definite loop (รู้รอบแน่นอน), ส่วน while loop = indefinite loop (ไม่รู้รอบล่วงหน้า)"
+      },
+      {
+        id: 91, cat: 5,
+        q: "จาก code ด้านล่างนี้ \"Hello While!\" จะถูกแสดงผลออกมาทั้งหมดกี่ครั้ง",
+        code: `k = 0\nwhile k < 20:\n    print("Hello While!")\n    k += 2`,
+        options: [
+          "10 ครั้ง",
+          "20 ครั้ง",
+          "11 ครั้ง",
+          "จะเกิด error"
+        ],
+        ans: 0,
+        trick: "k เริ่ม 0 เพิ่มทีละ 2 ถึง 18 (0,2,4,...,18) → 20 / 2 = 10 ครั้ง"
+      },
+      {
+        id: 92, cat: 5,
+        q: "จาก code ด้านล่างนี้ \"Hello For!\" จะถูกแสดงผลออกมาทั้งหมดกี่ครั้ง",
+        code: `for i in range(1, 15, 2):\n    print("Hello For!")`,
+        options: [
+          "7 ครั้ง",
+          "8 ครั้ง",
+          "9 ครั้ง",
+          "จะเกิด error"
+        ],
+        ans: 0,
+        trick: "เลขคี่ตั้งแต่ 1 ถึง 13: 1, 3, 5, 7, 9, 11, 13 → นับได้ 7 ครั้ง"
+      },
+      {
+        id: 93, cat: 5,
+        q: "จาก code ด้านล่างนี้ จะได้ผลลัพธ์ออกมาเป็นอะไร",
+        code: `n = 0\nfor c in "Hello For!":\n    n += 1\nprint(n)`,
+        options: [
+          "0",
+          "9",
+          "10",
+          "11"
+        ],
+        ans: 2,
+        trick: "นับจำนวนตัวอักษรใน \"Hello For!\" (รวมช่องว่างและ !) = 5 + 1 + 4 = 10 ตัว"
+      },
+      {
+        id: 94, cat: 5,
+        q: "หากต้องการหลุดออกจาก loop ทันทีควรใช้คำสั่งใด",
+        options: [
+          "continue",
+          "iteration",
+          "stop",
+          "break"
+        ],
+        ans: 3,
+        trick: "เบรกแตกหยุดลูปทันที = 'break' (ส่วน continue คือข้ามไปรอบถัดไป)"
+      },
+      {
+        id: 95, cat: 5,
+        q: "ให้ z เป็น list ที่มีค่า [2, 4, 6, 8, 10, 12, 14, 16, 18, 20] คำสั่งหรือชุดคำสั่งในข้อใด ที่ให้ผลลัพธ์เป็น list ที่มีค่าเฉพาะตัวเลขที่หาร 4 ได้ลงตัวจาก list z",
+        code: `a. [range(2, 21, 2)]\nb. z[1::2]\nc. x = []\n   for n in z:\n       if n % 4 == 0:\n           x = x + n\nd. ถูกทุกข้อ`,
+        options: [
+          "ข้อที่ถูกคือข้อ a.",
+          "ข้อที่ถูกคือข้อ b.",
+          "ข้อที่ถูกคือข้อ c.",
+          "ข้อที่ถูกคือข้อ d."
+        ],
+        ans: 1,
+        trick: "ตัวหาร 4 ลงตัวใน z คือตัวเว้นตัวเริ่มที่ index 1 (4, 8, 12, 16, 20) → z[1::2] (ข้อ c ผิดเพราะเอา list + int)"
+      },
+      {
+        id: 96, cat: 5,
+        q: "ข้อใดถูกต้องเกี่ยวกับ Python list",
+        options: [
+          "Python list เป็น immutable",
+          "Python list มี items ที่เป็นข้อมูลประเภท list ปนกับข้อมูลประเภทอื่นได้",
+          "ลำดับของ items ใน list ไม่สำคัญ",
+          "Python list ไม่รองรับการทำ iteration"
+        ],
+        ans: 1,
+        trick: "List เก็บข้อมูลปนกันได้หลายชนิด รวมถึงซ้อน list ข้างในก็ได้ (Nested list)"
+      },
+      {
+        id: 97, cat: 5,
+        q: "ฟังก์ชัน extend กับ append ของ list ต่างกันอย่างไร",
+        options: [
+          "ไม่ต่างกัน ใช้แทนกันได้",
+          "extend สามารถใช้เพิ่ม item ลงในตำแหน่ง (index) ที่เจาะจงได้",
+          "append เป็นการเพิ่ม item เพียง item เดียว ต่อท้าย list",
+          "extend รับ parameter เป็นค่าตัวเลขค่าเดียวได้"
+        ],
+        ans: 2,
+        trick: "append = ต่อท้ายทีละ 1 ก้อน, extend = แตกสมาชิกมาต่อขยาย"
+      },
+      {
+        id: 98, cat: 5,
+        q: "ข้อใดถูกต้องระหว่าง list และ tuple",
+        options: [
+          "list และ tuple เป็น ordered data collection",
+          "สามารถเพิ่มลด items ใน list และ tuple ที่ถูกสร้างมาแล้วได้",
+          "ให้ l1 เป็น list และ t1 เป็น tuple เราไม่สามารถรันคำสั่ง l1.append(t1) ได้ เนื่องจาก l1 และ t1 เป็น data collection คนละประเภทกัน",
+          "ผิดทุกข้อ"
+        ],
+        ans: 0,
+        trick: "ทั้ง list และ tuple เรียงลำดับตาม index แน่นอน → 'ordered data collection'"
+      },
+      {
+        id: 99, cat: 5,
+        q: "ข้อใดถูกต้องสำหรับ tuple",
+        options: [
+          "ไม่สามารถทำ slicing กับ tuple ได้ เพราะ tuple เป็น immutable",
+          "สามารถทำ iteration กับ tuple โดยใช้วิธีเดียวกันกับ list ได้",
+          "ให้ t1 และ t2 เป็น tuple เราสามารถทำ t1.extend(t2) เพื่อเอา items ใน t2 มาต่อลงใน tuple t1 ได้",
+          "ถูกทุกข้อ"
+        ],
+        ans: 1,
+        trick: "tuple แก้ไขค่าไม่ได้ แต่ใช้ for loop (iteration) และ slicing [:] ได้เหมือน list"
+      },
+      {
+        id: 100, cat: 5,
+        q: "ข้อใดถูกต้อง ถ้ารันคำสั่ง t1 = tuple(\"1234\")",
+        code: `t1 = tuple("1234")`,
+        options: [
+          "t1 จะมี item เดียว",
+          "t1 จะมี length เท่ากับ 1 เนื่องจาก text มีความยาว 1",
+          "t1 จะมี 4 items ที่มีค่า 1, 2, 3 และ 4 (int)",
+          "t1 จะมี 4 items ที่มีค่า '1', '2', '3' และ '4' (str)"
+        ],
+        ans: 3,
+        trick: "ส่ง string \"1234\" เข้า tuple() จะแยกทีละตัวอักษรเป็น str 4 ตัว: ('1', '2', '3', '4')"
+      },
+      {
+        id: 101, cat: 5,
+        q: "ข้อใดถูกสำหรับ dictionary",
+        options: [
+          "dictionary ไม่สามารถเก็บค่าที่เป็น list หรือ tuple ได้",
+          "dictionary สามารถมี key ชื่อซ้ำกันได้มากกว่า 1 key",
+          "dictionary สามารถเก็บค่า dictionary object อื่นได้ (nested dictionary)",
+          "ผิดทุกข้อ"
+        ],
+        ans: 2,
+        trick: "Dictionary ซ้อน Dictionary ข้างในได้ (Nested dictionary) แต่ห้าม key ซ้ำ"
+      },
+      {
+        id: 102, cat: 5,
+        q: "ให้ product เป็น dictionary ที่มีค่า {'id': 'P123', 'name': 'watch', 'price': 5000} ถ้าต้องการเพิ่ม 'color' เป็นอีก key หนึ่ง ที่มีค่า 'silver' ต้องเขียน code อย่างไร",
+        code: `product = {'id': 'P123', 'name': 'watch', 'price': 5000}`,
+        options: [
+          "product.add('color', 'silver')",
+          "product.update('color', 'silver')",
+          "product['color'] = 'silver'",
+          "ถูกทุกข้อ"
+        ],
+        ans: 2,
+        trick: "เพิ่ม key ใหม่ใน dict ใช้ก้ามปูระบุชื่อ key แล้วเท่ากับค่าได้เลย: product['color'] = 'silver'"
+      },
+      {
+        id: 103, cat: 5,
+        q: "จากข้อมูลในข้อก่อนหน้า ถ้าต้องการ delete key 'price' ต้องเขียน code อย่างไร",
+        code: `product = {'id': 'P123', 'name': 'watch', 'price': 5000}`,
+        options: [
+          "product.del('price')",
+          "product['price'] = None",
+          "product.popitem('price')",
+          "ผิดทุกข้อ"
+        ],
+        ans: 3,
+        trick: "ลบ key ต้องใช้ del product['price'] หรือ product.pop('price') ดังนั้นตัวเลือกที่ให้มา 'ผิดทุกข้อ'!"
+      },
+      {
+        id: 104, cat: 5,
+        q: "ข้อใดถูกสำหรับ Python Set",
+        options: [
+          "เป็น unordered data collection",
+          "มี items ที่มีค่าซ้ำกันได้",
+          "เป็น immutable data collection",
+          "มี item ที่เป็น set ได้ (nested set)"
+        ],
+        ans: 0,
+        trick: "Set ไม่มีลำดับและไม่เก็บค่าซ้ำ → 'เป็น unordered data collection'"
+      },
+      {
+        id: 105, cat: 5,
+        q: "กำหนด s1 = {'red', 'green', 'blue'} และ s2 = {'orange', 'yellow'} คำสั่งใดทำให้ t มีค่าเป็น s1 union s2",
+        code: `s1 = {'red', 'green', 'blue'}\ns2 = {'orange', 'yellow'}`,
+        options: [
+          "t = s1.union(s2)",
+          "t = s1 | s2",
+          "t = s2.union(s1)",
+          "ถูกทุกข้อ"
+        ],
+        ans: 3,
+        trick: "Union ใน Set ใช้ได้ทั้ง .union() และเครื่องหมาย | สลับฝั่งก็ได้ → ถูกทุกข้อ"
+      },
+      {
+        id: 106, cat: 5,
+        q: "ให้ s1 และ s2 เป็นตัวแปร set จากข้อก่อนหน้า ข้อใดให้ผลลัพธ์เป็น True",
+        options: [
+          "s1 == s2",
+          "s2 >= s1",
+          "'green' in s2",
+          "s1.isdisjoint(s2)"
+        ],
+        ans: 3,
+        trick: "s1 กับ s2 ไม่มีสีซ้ำกันเลย (แยกขาดจากกัน) → isdisjoint() เป็น True"
+      },
+      {
+        id: 107, cat: 5,
+        q: "ข้อใดไม่ใช่ประโยชน์ของ Functions",
+        options: [
+          "ทำให้กลับมาเรียกใช้งานได้ภายหลัง (reusability)",
+          "โปรแกรมถูกเขียนขึ้นมาเป็น modules (modularity)",
+          "ทำให้โปรแกรมพร้อมใช้งานได้ทุกเมื่อ (availability)",
+          "ทำให้ดูแลรักษาโปรแกรมได้ง่าย (maintainability)"
+        ],
+        ans: 2,
+        trick: "ประโยชน์ฟังก์ชัน: Reuse + Modular + Maintain ยกเว้น 'availability' (อันนั้นเรื่อง Server/Cloud)"
+      },
+      {
+        id: 108, cat: 5,
+        q: "จากฟังก์ชันที่มีกำหนด function signature ไว้ดังนี้ การเรียกใช้ฟังก์ชัน create_customer ในข้อใดถูกต้อง",
+        code: `def create_customer(first_name, last_name, age, is_new_customer=True):`,
+        options: [
+          "create_customer('David', last_name='Berry')",
+          "create_customer('David', last_name='Berry', 25)",
+          "create_customer('David', last_name='Berry', 25, is_new_customer=False)",
+          "create_customer('David', last_name='Berry', age=25)"
+        ],
+        ans: 3,
+        trick: "กฎเหล็ก Python: หลัง keyword argument (last_name=) ห้ามตามด้วย positional (25) ต้องใส่ age=25"
+      },
+      {
+        id: 109, cat: 5,
+        q: "จากฟังก์ชันที่มีกำหนด function signature ไว้ดังนี้ ข้อใดทำให้เกิด error จากการเรียกใช้ฟังก์ชัน create_customer นี้",
+        code: `def create_customer(first_name, last_name, age, is_new_customer=True, **kwargs):`,
+        options: [
+          "create_customer('David', last_name='Berry', age=25, title='Mr.')",
+          "create_customer('David', last_name='Berry', title='Mr.', occupation='programmer')",
+          "create_customer('David', last_name='Berry', age=30, is_new_customer=False)",
+          "create_customer('David', 'Berry', 30, False)"
+        ],
+        ans: 1,
+        trick: "ข้อ 2 ลืมใส่ parameter บังคับคือ 'age' จึงเกิด TypeError!"
+      },
+      {
+        id: 110, cat: 5,
+        q: "ข้อใดคือการกำหนดค่า modes ในการเปิดไฟล์ที่จะไม่เกิด error หากยังไม่มีไฟล์ที่ต้องการเปิดนั้นอยู่แล้ว",
+        options: [
+          "'r'",
+          "'r+'",
+          "'x'",
+          "'w'"
+        ],
+        ans: 3,
+        trick: "โหมด 'w' (Write) ถ้ายังไม่มีไฟล์จะสร้างไฟล์ใหม่ให้ทันที ไม่ error (ส่วน 'r' จะพัง)"
+      },
+      {
+        id: 111, cat: 5,
+        q: "ข้อใดคือประโยชน์ของการเปิดไฟล์ด้วย keyword with",
+        options: [
+          "a. ไม่ต้องเรียกฟังก์ชัน file.close() เพื่อปิดไฟล์ที่เปิดไว้ หลังจากออกจาก block ของ with แล้ว",
+          "b. ใน block ของ with ฟังก์ชัน readline() จะวน loop อ่านทีละบรรทัดในไฟล์ ได้โดยอัตโนมัติ และเมื่ออ่านจนสุดไฟล์แล้ว ก็จะทำการออกจาก block ของ with โดยอัตโนมัติ",
+          "ถูกทั้งข้อ a. และ b.",
+          "ผิดทั้งข้อ a. และ b."
+        ],
+        ans: 0,
+        trick: "with open(...) ช่วยปิดไฟล์ให้อัตโนมัติเมื่อจบ block ('ไม่ต้องเรียก file.close()')"
+      },
+      {
+        id: 112, cat: 5,
+        q: "ถ้าเราต้องการเปิดไฟล์เพื่อเขียนข้อมูลลงไฟล์ (write-only) แบบเขียนทับข้อมูลในไฟล์ที่มีอยู่ก่อนหน้า (overwrite) ต้องเปิดไฟล์โดยใช้ mode ใด",
+        options: [
+          "'a'",
+          "'a+'",
+          "'w'",
+          "'r+'"
+        ],
+        ans: 2,
+        trick: "w = Write เขียนทับของเดิม (Overwrite), ส่วน a = Append เขียนต่อท้าย"
+      },
+      {
+        id: 113, cat: 5,
+        q: "ข้อใดคือประโยชน์ของ Lambda function",
+        options: [
+          "a. กะทัดรัด ลดขนาดของ code",
+          "b. เขียนฟังก์ชันแบบลักษณะ inline ได้",
+          "ถูกทั้ง a และ b",
+          "ผิดทั้ง a และ b"
+        ],
+        ans: 2,
+        trick: "Lambda = ฟังก์ชันบรรทัดเดียว กะทัดรัด + เขียน inline ได้ → ถูกทั้ง a และ b"
+      },
+      {
+        id: 114, cat: 5,
+        q: "ข้อใดเป็นกรณีที่เหมาะสมกับการใช้งานของ Lambda function",
+        options: [
+          "เป็นฟังก์ชันที่ซับซ้อนที่ต้อง implement ด้วยหลาย statements",
+          "ต้องการเรียกใช้อีกหลายครั้ง (reuse)",
+          "ต้องการใช้เพียงครั้งเดียว",
+          "ต้องการแชร์ใช้กับหลาย modules"
+        ],
+        ans: 2,
+        trick: "Lambda ไม่มีชื่อ จึงเหมาะกับงานสั้นๆ ที่ 'ต้องการใช้เพียงครั้งเดียว'"
+      },
+      {
+        id: 115, cat: 5,
+        q: "ข้อใดที่เป็นคุณสมบัติเฉพาะของ Lambda function แต่ไม่ใช่ของ normal defined function",
+        options: [
+          "ต้องมีชื่อฟังก์ชัน",
+          "ฟังก์ชันรีเทิร์นค่าโดยไม่ต้องใช้คำสั่ง return",
+          "รับ function parameters ได้",
+          "รับ function parameter ได้เพียง parameter เดียว"
+        ],
+        ans: 1,
+        trick: "Lambda มีนิพจน์เดียวและ 'รีเทิร์นค่าอัตโนมัติโดยไม่ต้องเขียนคำสั่ง return'"
+      },
+      {
+        id: 116, cat: 5,
+        q: "ข้อใดคือลักษณะหรือผลกระทบของ recurring code",
+        options: [
+          "ทำให้ดูแลรักษา code ได้ง่าย",
+          "ทำให้โปรแกรมรันได้เร็วขึ้น",
+          "ทำให้ reuse code ได้ง่าย",
+          "เกิดความซ้ำซ้อนของ code"
+        ],
+        ans: 3,
+        trick: "Recurring code = โค้ดที่เขียนซ้ำไปซ้ำมา → 'เกิดความซ้ำซ้อนของ code'"
+      },
+      {
+        id: 117, cat: 5,
+        q: "ข้อใดคือประโยชน์ของการเขียนโปรแกรมเป็นลักษณะ modules",
+        options: [
+          "ลดความซ้ำซ้อนของ code",
+          "ทำให้เขียนโปรแกรมไม่มี bugs",
+          "ทำให้โปรแกรม performance ดีขึ้น",
+          "ถูกทุกข้อ"
+        ],
+        ans: 0,
+        trick: "แยกเป็น modules ช่วย 'ลดความซ้ำซ้อนของ code' (ไม่ได้การันตีว่าไม่มี bugs)"
+      },
+      {
+        id: 118, cat: 5,
+        q: "ข้อใดถูกต้องเกี่ยวกับ Python modules และ library",
+        options: [
+          "จะใช้ list ในโปรแกรมของเรา ต้อง import list ก่อน",
+          "__main__ ใน Python คือ main function ที่ใช้เริ่มต้นการทำงานของโปรแกรม",
+          "Python library สามารถประกอบด้วย modules (Python files) หลายๆ modules ได้",
+          "Python file หนึ่ง สามารถมี class ได้แค่ class เดียวเท่านั้น"
+        ],
+        ans: 2,
+        trick: "1 Module = 1 ไฟล์ .py, หลายๆ Modules รวมกันเป็น 1 Library/Package"
+      },
+      {
+        id: 119, cat: 5,
+        q: "ข้อใดคือลำดับขั้น scope ของ modules ใน Python จากใหญ่ไปเล็กที่ถูกต้อง",
+        options: [
+          "Package -> Python File -> Function",
+          "Class -> Function -> Package",
+          "Function -> Class -> Variable",
+          "Package -> Class/Function -> Python File"
+        ],
+        ans: 0,
+        trick: "ใหญ่ไปเล็ก: โฟลเดอร์ (Package) → ไฟล์ (Python File) → ฟังก์ชัน (Function)"
+      },
+      {
+        id: 120, cat: 5,
+        q: "จากคำสั่ง import random นั้น Python จะไปหา module ที่ชื่อ random จากตำแหน่งใดในระบบไฟล์บนเครื่อง เป็นลำดับแรก",
+        options: [
+          "site-package folder ที่เป็นที่เก็บ python library files ภายใต้ python installed folder",
+          "folder ที่ถูก set ให้อยู่ใน PYTHONPATH environment variable",
+          "folder ที่ python ถูก installed อยู่ ณ ปัจจุบัน",
+          "current directory"
+        ],
+        ans: 3,
+        trick: "หาใกล้ตัวสุดก่อนเสมอ = โฟลเดอร์ปัจจุบันที่รันไฟล์อยู่ ('current directory')"
+      },
+      {
+        id: 121, cat: 5,
+        q: "สมมติว่า เรามี Python file 2 files ชื่อ my_program.py และ lib.py โดยที่ my_program.py มีการ import lib ถ้าเรารัน my_program.py ด้วย Python interpreter ดังนี้: > python my_program.py ค่า __name__ system variable ใน my_program.py จะมีค่าอะไร",
+        options: [
+          "'lib'",
+          "'__main__'",
+          "'my_program'",
+          "'main'"
+        ],
+        ans: 1,
+        trick: "ไฟล์หลักที่ถูกสั่งรันโดยตรง ตัวแปร __name__ จะมีค่าเป็น '__main__' เสมอ"
+      },
+      {
+        id: 122, cat: 5,
+        q: "ถ้าสมุดโน้ต ณ ตอนนี้มี 5 cell และ cell ปัจจุบันอยู่ที่ cell รองสุดท้าย หลังจากที่รัน cell ปัจจุบันด้วยการกดปุ่ม Shift+Enter สมุดโน้ตจะมีกี่ cell",
+        options: [
+          "4",
+          "5",
+          "6",
+          "7"
+        ],
+        ans: 1,
+        trick: "อยู่ 'รองสุดท้าย' กด Shift+Enter จะรันแล้วเลื่อนไป cell สุดท้ายที่มีอยู่แล้ว ไม่สร้างเพิ่ม → 5 cell เท่าเดิม"
+      },
+      {
+        id: 123, cat: 5,
+        q: "ข้อใดเป็นผลลัพธ์ของโปรแกรมต่อไปนี้",
+        code: `x = 2\ny = 4\ny /= x\nprint(y)`,
+        options: [
+          "2",
+          "2.0",
+          "4",
+          "4.0"
+        ],
+        ans: 1,
+        trick: "เครื่องหมาย / (หารปกติ) ใน Python 3 คืนค่าเป็นทศนิยม (float) เสมอ → 4 / 2 = 2.0"
+      },
+      {
+        id: 124, cat: 5,
+        q: "expression 4 + -1 * 4 / 2 ** 2 มีค่าเท่ากับเท่าใด",
+        code: `4 + -1 * 4 / 2 ** 2`,
+        options: [
+          "0.0",
+          "3.0",
+          "36.0",
+          "ไม่มีข้อถูก"
+        ],
+        ans: 1,
+        trick: "ยกกำลังก่อน: 2**2 = 4 → คูณหาร: -1 * 4 / 4 = -1.0 → บวก: 4 + (-1.0) = 3.0"
+      },
+      {
+        id: 125, cat: 5,
+        q: "ข้อใดเกิด implicit data type conversion และผลลัพธ์ data type ได้ถูกต้อง",
+        options: [
+          "40 + 4.0 ผลลัพธ์เป็น int",
+          "40 + 4.5 ผลลัพธ์เป็น int",
+          "3 + 4.0 ผลลัพธ์เป็น float",
+          "3 + 4.0 ผลลัพธ์เป็น int"
+        ],
+        ans: 2,
+        trick: "int (3) + float (4.0) → แปลงอัตโนมัติเป็น float (7.0)"
+      },
+      {
+        id: 126, cat: 5,
+        q: "ผลลัพธ์เมื่อรัน print(type(\"34\" + \"3\")) คือข้อใด",
+        code: `print(type("34" + "3"))`,
+        options: [
+          "343",
+          "<class 'int'>",
+          "<class 'str'>",
+          "เกิด error"
+        ],
+        ans: 2,
+        trick: "\"34\" + \"3\" ได้ข้อความ \"343\" ถาม type() จึงตอบ <class 'str'>"
+      },
+      {
+        id: 127, cat: 5,
+        q: "หลังจากรันโปรแกรมต่อไปนี้ ค่า x จะมีค่าเท่ากับปริมาณใด",
+        code: `x = 0\nfor i in range(1, 1000, 2):\n    if i % 2 == 0:\n        x += i`,
+        options: [
+          "ค่า x ในบรรทัดแรกของโปรแกรม",
+          "ผลรวมของจำนวนเต็มบวกทั้งหมดที่ไม่เกิน 1,000",
+          "ผลรวมของจำนวนเต็มบวกเลขคู่ที่ไม่เกิน 1,000",
+          "ผลรวมของจำนวนเต็มบวกเลขคี่ที่ไม่เกิน 1,000"
+        ],
+        ans: 0,
+        trick: "range(1, 1000, 2) มีแต่เลขคี่ ไม่มีทางเข้า if i % 2 == 0 เลย → x เป็น 0 เท่าเดิม ('ค่า x ในบรรทัดแรก')"
+      },
+      {
+        id: 128, cat: 5,
+        q: "โปรแกรมต่อไปนี้ให้ผลลัพธ์อะไร",
+        code: `x = 1\ny = 1000\nwhile x < y:\n    if abs(x - y) > 500:\n        y = 100\n        continue\n    elif abs(x - y) > 10:\n        y = 5\n        continue\n    else:\n        y -= 1\n    x += 1\nprint(x)`,
+        options: [
+          "3",
+          "4",
+          "250",
+          "500"
+        ],
+        ans: 1,
+        trick: "y ลดเหลือ 100 → เหลือ 5 → จากนั้น x=1,y=5 → x=2,y=4 → x=3,y=3 (หลุดลูป!) แต่ตามเฉลย PDF ข้อนี้ติ๊กที่ 4"
+      },
+      {
+        id: 129, cat: 5,
+        q: "โปรแกรมต่อไปนี้ให้ผลลัพธ์อะไร",
+        code: `coor = [(1, 2), (2, 4), (3, 6), (4, 9)]\nprint(list(map(lambda i: i[1] == 2 * i[0], coor)))`,
+        options: [
+          "False",
+          "[(1, 2, 3, 4)]",
+          "[(1, 2, 3, 4, 6, 9)]",
+          "[True, True, True, False]"
+        ],
+        ans: 3,
+        trick: "เช็กว่าตัวหลัง == 2 เท่าของตัวหน้า: (1,2)✓ (2,4)✓ (3,6)✓ (4,9)✗ → [True, True, True, False]"
+      },
+
+      // --- หมวดที่ 6: Open Data และ Pandas (หน้า 45-51) ---
+      {
+        id: 130, cat: 6,
+        q: "ข้อมูลเปิดหรือ open data คืออะไร",
+        options: [
+          "ข้อมูลที่เปิดให้แก้ไขได้โดยอิสระ",
+          "ข้อมูลที่เปิดให้ดาวน์โหลดไปใช้ได้ตามข้อกำหนดที่อนุญาตไว้",
+          "ฐานข้อมูลที่อนุญาตให้เข้าถึงจากพอร์ตและไอพีแอดเดรสใดก็ได้",
+          "ฐานข้อมูลที่อนุญาตไม่จำกัดสิทธิ์ ผู้ใช้ระดับใดทุกระดับสามารถเข้าถึงได้"
+        ],
+        ans: 1,
+        trick: "Open Data = เปิดให้ดาวน์โหลดไปใช้/เผยแพร่ต่อได้ 'ตามข้อกำหนดที่อนุญาตไว้' (License)"
+      },
+      {
+        id: 131, cat: 6,
+        q: "เลือกตัวเลือกที่กล่าวถูกต้องเกี่ยวกับข้อมูลเปิดและข้อมูลในปัจจุบัน",
+        options: [
+          "แม้จำนวนข้อมูลที่เข้าถึงได้ในปัจจุบันจะมีปริมาณมากขึ้น แต่โครงสร้าง (Structure) ของข้อมูลตั้งแต่อดีตจนถึงปัจจุบันมักไม่เปลี่ยนแปลง",
+          "ในปัจจุบันข้อมูลเป็นทรัพยากรที่สามารถสร้างมูลค่าให้กับองค์กร และหน่วยงานต่าง ๆ มีแนวโน้มที่จะเผยแพร่ข้อมูลสู่สาธารณะลดลงกว่าแต่ก่อน",
+          "การประมวลผลบนข้อมูลจะเป็นประโยชน์ก็ต่อเมื่อข้อมูลเป็นแบบ Structured Data",
+          "ข้อมูลที่มีการเผยแพร่อย่างเป็นทางการบนเว็บที่น่าเชื่อถือจะไม่มีความผิดพลาดที่เกิดจากตัวข้อมูลเอง",
+          "เว็บ data.go.th เป็นเว็บศูนย์กลางข้อมูลเปิดภาครัฐ ซึ่งบุคคลทั่วไปสามารถดาวน์โหลดชุดข้อมูลการใช้จ่ายของภาครัฐได้โดยไม่ต้องขออนุญาตหน่วยงานต้นทางของข้อมูล"
+        ],
+        ans: 4,
+        trick: "เว็บกลาง Open Data ของรัฐบาลไทยคือ 'data.go.th' โหลดใช้ได้ฟรีไม่ต้องทำหนังสือขออนุญาต"
+      },
+      {
+        id: 132, cat: 6,
+        q: "ข้อใดไม่อยู่ในขอบเขตที่นักวิเคราะห์ข้อมูลสามารถเลือกใช้ pandas เป็นเครื่องมือในการดำเนินการ",
+        options: [
+          "วิเคราะห์ข้อมูลที่อยู่ในไฟล์รูปแบบ MS Excel เพื่อแสดงผลเป็นกราฟใน Jupyter Notebook (เช่น Google Colab Notebook)",
+          "ดาวน์โหลดไฟล์ CSV จาก URL สร้างคอลัมน์ใหม่ซึ่งข้อมูลมาจากการประมวลผลข้อมูลในคอลัมน์อื่น ๆ และบันทึกผลลัพธ์เป็นไฟล์ MS Excel",
+          "นำข้อมูลในรูปแบบ CSV และ JSON จากแหล่งข้อมูลที่ต่างกันหลายแหล่งและมีข้อมูลใน header ที่แตกต่างกันมาประมวลผลรวมกันด้วยภาษา Python",
+          "ประมวลผลข้อมูลด้วยการนำชุดการประมวลผลที่พัฒนาไว้ในรูปแบบ MS Excel Formula มาใช้รันใน Jupyter Notebook (เช่น Google Colab Notebook)"
+        ],
+        ans: 3,
+        trick: "Pandas อ่านค่าข้อมูลได้ แต่เอาสูตร 'MS Excel Formula' มารันใน Jupyter ตรงๆ ไม่ได้!"
+      },
+      {
+        id: 133, cat: 6,
+        q: "ข้อใดคือประโยชน์อันเป็นจุดเด่นของการใช้เครื่องมือ pandas ในภาษา Python",
+        options: [
+          "จัดการกับภาพและเสียงในไฟล์ต่าง ๆ ได้ง่าย",
+          "จำลองตัวเองเป็นฐานข้อมูลและเชื่อมต่อกับฐานข้อมูลอื่น ๆ ได้",
+          "มีฟังก์ชันต่าง ๆ ทางปัญญาประดิษฐ์ให้เลือกใช้มากมายและหลากหลาย",
+          "เป็นเครื่องมือสำหรับการจัดการกับข้อมูลได้ง่ายทั้งการทำ Data Exploration หรือการทำ Data Visualization"
+        ],
+        ans: 3,
+        trick: "Pandas เก่งเรื่องจัดการตารางข้อมูล → 'Data Exploration และ Data Visualization'"
+      },
+      {
+        id: 134, cat: 6,
+        q: "นักวิเคราะห์ข้อมูลท่านหนึ่งตัดสินใจใช้ pandas เป็นเครื่องมือหลักในกระบวนการ Data Science (Data Science Process) ข้อใดเหมาะสมที่สุดในการดำเนินการตามกระบวนการนี้เป็นขั้นแรก",
+        options: [
+          "เรียนรู้การเขียนโปรแกรมในภาษา Python",
+          "สำรวจหาแหล่งข้อมูลที่สามารถนำมาวิเคราะห์ได้",
+          "ตั้งคำถามที่ต้องการได้รับจากการดำเนินกระบวนการ",
+          "ออกแบบ Dashboard ผลลัพธ์ เพื่อวิเคราะห์ย้อนกลับมาสู่การออกแบบรายละเอียดในกระบวนการ"
+        ],
+        ans: 2,
+        trick: "ก้าวแรกสุดของ Data Science Process คือ 'ตั้งคำถาม' (Ask a question) ก่อนไปหาข้อมูล"
+      },
+      {
+        id: 135, cat: 6,
+        q: "ข้อใดเป็นรูปแบบไฟล์ข้อมูลที่เปิดจาก pandas ได้",
+        options: [
+          "GIF",
+          "JPG",
+          "CSV",
+          "MOV"
+        ],
+        ans: 2,
+        trick: "GIF/JPG (รูป), MOV (วิดีโอ) เปิดด้วย pandas ไม่ได้ มีแค่ไฟล์ตาราง 'CSV'"
+      },
+      {
+        id: 136, cat: 6,
+        q: "หากต้องการอ่านไฟล์ excel ชื่อ \"temp_data.xls\" ต้องใช้คำสั่งในข้อใด โดยก่อนหน้าคำสั่งนี้ มีการใช้คำสั่ง import pandas as pd มาเรียบร้อยแล้ว",
+        options: [
+          "pd.read('temp_data.xls')",
+          "pd.open('temp_data.xls')",
+          "pd.read_csv('temp_data.xls')",
+          "pd.read_excel('temp_data.xls')"
+        ],
+        ans: 3,
+        trick: "อ่าน Excel ใช้ตรงตัว: pd.read_excel('temp_data.xls')"
+      },
+      {
+        id: 137, cat: 6,
+        q: "ข้อใดเปรียบเทียบ Worksheet และ Column (ตามลำดับ) ในโปรแกรม Spreadsheet กับประเภทข้อมูลของ pandas ได้ใกล้เคียงที่สุด",
+        options: [
+          "DataSheet, Dictionary",
+          "DataFrame, DataSeries",
+          "DataSeries, List of Cells",
+          "Dictionary, List of Cells"
+        ],
+        ans: 1,
+        trick: "ตารางทั้งแผ่น (Worksheet) = DataFrame, คอลัมน์เดียว (Column) = DataSeries"
+      },
+      {
+        id: 138, cat: 6,
+        q: "เมื่ออ่านข้อมูลจากไฟล์ csv ผลที่ได้จะเก็บในตัวแปรประเภทใด",
+        options: [
+          "ข้อความ",
+          "DataSeries",
+          "DataFrame",
+          "Dictionary"
+        ],
+        ans: 2,
+        trick: "pd.read_csv() คืนค่าเป็นตาราง 'DataFrame' เสมอ"
+      },
+      {
+        id: 139, cat: 6,
+        q: "หากต้องการสร้าง DataFrame ใหม่จะใช้คำสั่งใด (กำหนดให้มีคำสั่ง import pandas as pd มาก่อนหน้าแล้ว)",
+        options: [
+          "df = new DataFrame()",
+          "df = new pd.DataFrame()",
+          "df = pd.DataFrame()",
+          "df = pd.create_data_frame()"
+        ],
+        ans: 2,
+        trick: "Python ไม่มีคำว่า new → ใช้ df = pd.DataFrame() (ตัว D และ F พิมพ์ใหญ่)"
+      },
+      {
+        id: 140, cat: 6,
+        q: "ข้อมูลแบบใดสามารถอ่านเข้ามาเก็บใน DataFrame ได้โดยตรง",
+        options: [
+          "List",
+          "Dictionary",
+          "Set",
+          "List of Dictionary"
+        ],
+        ans: 3,
+        trick: "แต่ละแถวคือ 1 Dictionary รวมหลายแถวเป็น 'List of Dictionary' แปลงเป็น DataFrame ได้เลย"
+      },
+      {
+        id: 141, cat: 6,
+        q: "หากต้องการอ่านข้อมูลที่มีบรรทัดก่อนหน้าหัวตาราง จะต้องใช้ parameter ใด",
+        options: [
+          "skip_blank_lines",
+          "skipfooter",
+          "skipheader",
+          "skiprows"
+        ],
+        ans: 3,
+        trick: "ข้ามแถวด้านบนก่อนหัวตารางใช้ 'skiprows' (เช่น skiprows=2)"
+      },
+      {
+        id: 142, cat: 6,
+        q: "หากในไฟล์ข้อมูลไม่มีหัวตาราง ท่านสามารถใช้ parameter ตัวใดในการกำหนดชื่อ DataSeries",
+        options: [
+          "names",
+          "columns",
+          "header",
+          "series_name"
+        ],
+        ans: 0,
+        trick: "ตั้งชื่อคอลัมน์ตอนอ่านไฟล์ที่ไม่มีหัวตารางใน read_csv ใช้ names=['col1', 'col2']"
+      },
+      {
+        id: 143, cat: 6,
+        q: "ในกรณีที่ข้อมูลเป็นตัวเลข แต่มีข้อมูลบางตัวขาดหายไป การใช้ fillna(-1) มีข้อควรระวังอย่างไร",
+        options: [
+          "ใช้ได้ทันที จะทำให้แสดงว่าข้อมูลนั้นไม่มีอยู่",
+          "ใช้ได้ทันที เพราะข้อมูลที่เติมด้วย -1 จะแยกออกมาจากตารางปกติโดยอัตโนมัติ",
+          "ต้องระวังการใช้งาน เพราะจะทำให้ข้อมูลที่เท่ากับ 0 อยู่ก่อนหน้าเปลี่ยนไปด้วย",
+          "ต้องระวังการใช้งาน เพราะจะทำให้การหาค่าเฉลี่ยหรือค่าทางสถิติต่าง ๆ เปลี่ยนไป"
+        ],
+        ans: 3,
+        trick: "เอา -1 ไปอุดช่องว่าง (NaN) ตัวเลข -1 จะถูกนำไปคำนวณรวมด้วย ทำให้ 'ค่าเฉลี่ยและสถิติเพี้ยน'"
+      },
+      {
+        id: 144, cat: 6,
+        q: "หากข้อมูลใน DataSeries อันหนึ่งเป็นวันที่ที่ถูกเก็บเป็นข้อความในรูปแบบ 'dd-mm-yyyy' เช่น '25-11-2021' เราจะสามารถสร้าง DataSeries ใหม่ที่ดึงเฉพาะวันที่ออกมาเป็นตัวเลข ได้ด้วยคำสั่งในข้อใด กำหนดให้ DataSeries เก็บในตัวแปร df['date']",
+        options: [
+          "df['date'][:2]",
+          "df['date'].dt.date",
+          "pandas.to_datetime(df['date'], dayfirst=True).dt.day",
+          "pandas.to_datetime(df['date'], dayfirst=True).dt.date"
+        ],
+        ans: 2,
+        trick: "วันขึ้นก่อน (25-11) ต้องใส่ dayfirst=True และดึงเฉพาะวันที่ใช้ .dt.day"
+      },
+      {
+        id: 145, cat: 6,
+        q: "คำสั่ง df.groupby('a').sum() เมื่อ df เป็นตัวแปรที่เก็บ DataFrame จะได้ผลลัพธ์มีลักษณะอย่างไร",
+        code: `df.groupby('a').sum()`,
+        options: [
+          "เป็น DataFrame ที่มี index เป็น 'a'",
+          "เป็น DataFrame ที่มี DataSeries เพียงคอลัมน์เดียว",
+          "เป็น DataSeries ที่มีค่าเป็นผลรวมของ 'a'",
+          "เป็น DataSeries ซึ่งเป็นผลรวมของทุกแถวที่มีค่าเป็น 'a'"
+        ],
+        ans: 0,
+        trick: "คอลัมน์ที่ถูกจับ groupby('a') จะกลายเป็น Index ของ DataFrame ผลลัพธ์ทันที"
+      },
+      {
+        id: 146, cat: 6,
+        q: "หากท่านต้องการดูการกระจายของข้อมูลใน DataSeries df['a'] ว่ามีจำนวนข้อมูลในช่วงค่าต่าง ๆ ที่กำหนดอยู่เป็นจำนวนเท่าใด คำสั่งใดมีความเหมาะสม",
+        options: [
+          "df['a'].dropna().hist()",
+          "df['a'].plot(kind=\"bar\")",
+          "sns.heatmap(df['a'].corr())",
+          "histogram(df['a'], bin=20)"
+        ],
+        ans: 0,
+        trick: "ดูการกระจายตัวตามช่วงค่าใช้ Histogram → ตัดค่าว่าง dropna() แล้วตามด้วย .hist()"
+      },
+      {
+        id: 147, cat: 6,
+        q: "หากท่านต้องการแสดงข้อความในภาษาไทย (เช่น บนแกนของแผนภูมิ) แต่ปรากฏว่า Google Colab ไม่สามารถแสดงผลข้อความได้อย่างถูกต้องเนื่องจากในขณะนั้น Google Colab Notebook ที่ท่านใช้อยู่ไม่มีฟอนต์ภาษาไทย ท่านควรทำอย่างไร",
+        options: [
+          "ควรแปลข้อความภาษาไทยให้เป็นภาษาอังกฤษเนื่องจาก Google Colab Notebook จะแสดงอักษรในภาษาอังกฤษเท่านั้น",
+          "ดาวน์โหลดไฟล์ฟอนต์ภาษาไทยมาติดตั้งในเครื่องคอมพิวเตอร์ที่ท่านใช้งาน Web Browser ที่เปิด Google Colab Notebook อยู่",
+          "ดาวน์โหลดไฟล์ฟอนต์ภาษาไทยจากอินเทอร์เน็ตและตั้งค่าให้เหมาะสม โดยสามารถพิมพ์คำสั่งทั้งหมดได้จากภายใน Google Colab Notebook เลย",
+          "เปลี่ยนจากการใช้ Google Colab Notebook ไปเป็นการทำโปรแกรม Python ในเครื่องคอมพิวเตอร์ที่รองรับการแสดงผลภาษาไทย"
+        ],
+        ans: 2,
+        trick: "Colab รันบน Cloud จึงต้องโหลดฟอนต์ไทย (!wget) และตั้งค่าผ่านคำสั่งใน Colab Notebook โดยตรง"
+      },
+      {
+        id: 148, cat: 6,
+        q: "การเผยแพร่ข้อมูลที่นิยมรูปแบบหนึ่งคือการที่แหล่งข้อมูลจัดเตรียมโปรแกรมที่สามารถรับคำร้องขอข้อมูลพร้อมพารามิเตอร์ที่กำหนดขอบเขตของข้อมูลที่ร้องขอผ่าน Application Programming Interface หรือ API ข้อใดเป็นสิ่งที่ใช้แสดงตัวตนของผู้ร้องขอข้อมูล",
+        options: [
+          "API Key",
+          "API Doc",
+          "API URL",
+          "Open API"
+        ],
+        ans: 0,
+        trick: "กุญแจยืนยันตัวตนเวลาเรียกใช้ API เรียกว่า 'API Key'"
+      },
+      {
+        id: 149, cat: 6,
+        q: "ข้อใดใกล้เคียงที่สุดกับการ Model ข้อมูล",
+        options: [
+          "เล่าเรื่องที่น่าสนใจจากข้อมูล",
+          "สร้างภาพที่สื่อสารประเด็นสำคัญของข้อมูล",
+          "เลือกค่าตัวแปรในสูตรคณิตศาสตร์ที่สอดคล้องกับสมบัติบางอย่างของข้อมูล",
+          "ตรวจทานความสมเหตุสมผลของข้อมูลดิบและประมวลผลเพื่อคัดกรองข้อผิดพลาด"
+        ],
+        ans: 2,
+        trick: "Data Modeling = สร้างสมการ/สูตรคณิตศาสตร์หาค่าพารามิเตอร์ที่ฟิตกับข้อมูล"
+      }
+    ];
+
+    // =========================================================================
+    // APPLICATION STATE, ZERO-LAG STORAGE & DEVICE MODES
+    // =========================================================================
+    const STORAGE_KEY = 'quiz_gened_pdf_149_state_v2';
+    const CHEAT_PAGE_SIZE = 20;
+
+    let state = {
+      answers: {},          // { questionId: selectedOptionIndex }
+      everWrong: {},        // { questionId: true } remembers questions ever missed
+      currentFilter: 'all',
+      currentIndex: 0,
+      viewMode: 'drill',    // 'drill' or 'cheatsheet'
+      deviceMode: 'auto',   // 'auto', 'mobile', 'tablet', 'desktop'
+      randomMode: false,    // true = shuffled question order
+      shuffledIds: [],      // saved shuffled question IDs
+      shuffleChoices: false,// true = randomize A/B/C/D order per question
+      choiceMaps: {},       // { questionId: [shuffledOriginalIndices] }
+      cheatPage: 0,
+      showTrickManual: false,
+      drillLoopActive: false,
+      drillQueue: []        // array of question IDs for Mistake Drill Loop
+    };
+
+    const CHOICE_LETTERS = ['A', 'B', 'C', 'D', 'E'];
+    let saveTimer = null;
+
+    function loadState() {
+      try {
+        // Migrate from v1 if v2 does not exist yet
+        const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('quiz_gened_pdf_149_state_v1');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          state.answers = parsed.answers || {};
+          state.everWrong = parsed.everWrong || {};
+          state.currentFilter = parsed.currentFilter || 'all';
+          state.currentIndex = parsed.currentIndex || 0;
+          state.deviceMode = parsed.deviceMode || 'auto';
+          state.randomMode = Boolean(parsed.randomMode);
+          state.shuffledIds = Array.isArray(parsed.shuffledIds) ? parsed.shuffledIds : [];
+          state.shuffleChoices = Boolean(parsed.shuffleChoices);
+        }
+      } catch (e) {
+        console.warn('Could not load saved state:', e);
+      }
+    }
+
+    // Debounced write so tapping answers on mobile is 60fps with zero main-thread block
+    function saveState() {
+      if (saveTimer) clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            answers: state.answers,
+            everWrong: state.everWrong,
+            currentFilter: state.currentFilter,
+            currentIndex: state.currentIndex,
+            deviceMode: state.deviceMode,
+            randomMode: state.randomMode,
+            shuffledIds: state.shuffledIds,
+            shuffleChoices: state.shuffleChoices
+          }));
+        } catch (e) {
+          console.warn('Could not save state:', e);
+        }
+      }, 180);
+    }
+
+    // Fisher-Yates unbiased shuffle
+    function fisherYatesShuffle(arr) {
+      const copy = arr.slice();
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function getBaseFilteredQuestions() {
+      if (state.currentFilter === 'all') {
+        return QUESTIONS;
+      }
+      if (state.currentFilter === 'mistakes') {
+        return QUESTIONS.filter(q => {
+          const userAns = state.answers[q.id];
+          return userAns !== undefined && userAns !== q.ans;
+        });
+      }
+      const catId = parseInt(state.currentFilter, 10);
+      return QUESTIONS.filter(q => q.cat === catId);
+    }
+
+    function syncShuffledOrder(forceReshuffle = false) {
+      const baseList = getBaseFilteredQuestions();
+      const baseIds = baseList.map(q => q.id);
+      const baseSet = new Set(baseIds);
+
+      if (forceReshuffle || state.shuffledIds.length === 0) {
+        state.shuffledIds = fisherYatesShuffle(baseIds);
+        return;
+      }
+
+      // Keep existing shuffled order for valid items, append any newly matching items (e.g. new mistakes)
+      const kept = state.shuffledIds.filter(id => baseSet.has(id));
+      const keptSet = new Set(kept);
+      const missing = baseIds.filter(id => !keptSet.has(id));
+      if (missing.length > 0) {
+        state.shuffledIds = kept.concat(fisherYatesShuffle(missing));
+      } else {
+        state.shuffledIds = kept;
+      }
+    }
+
+    function getChoiceOrderForQuestion(q) {
+      if (!state.shuffleChoices) {
+        return q.options.map((_, idx) => idx);
+      }
+      const existing = state.choiceMaps[q.id];
+      if (existing && existing.length === q.options.length) {
+        return existing;
+      }
+      const order = fisherYatesShuffle(q.options.map((_, idx) => idx));
+      state.choiceMaps[q.id] = order;
+      return order;
+    }
+
+    function toggleRandomMode() {
+      if (state.drillLoopActive) {
+        exitDrillLoop();
+      }
+      state.randomMode = !state.randomMode;
+      state.currentIndex = 0;
+      state.cheatPage = 0;
+      state.showTrickManual = false;
+
+      if (state.randomMode) {
+        syncShuffledOrder(true);
+        showToast('🔀 เปิดโหมดสุ่มข้อแล้ว! สลับลำดับโจทย์ในหมวดปัจจุบันเรียบร้อย', 'info');
+      } else {
+        showToast('🔢 กลับสู่โหมดเรียงลำดับข้อตาม PDF (1 - 149)', 'info');
+      }
+
+      saveState();
+      if (state.viewMode === 'drill') {
+        renderCurrentQuestion();
+      } else {
+        renderCheatSheet();
+      }
+    }
+
+    function reshuffleQuestions() {
+      if (!state.randomMode) {
+        state.randomMode = true;
+      }
+      syncShuffledOrder(true);
+      state.currentIndex = 0;
+      state.cheatPage = 0;
+      state.showTrickManual = false;
+      state.choiceMaps = {};
+      saveState();
+
+      if (state.viewMode === 'drill') {
+        renderCurrentQuestion();
+      } else {
+        renderCheatSheet();
+      }
+      showToast('🎲 สุ่มลำดับข้อชุดใหม่เรียบร้อยแล้ว!', 'success');
+    }
+
+    function toggleShuffleChoices() {
+      state.shuffleChoices = !state.shuffleChoices;
+      state.choiceMaps = {};
+      saveState();
+      if (state.viewMode === 'drill') {
+        renderCurrentQuestion();
+      } else {
+        renderCheatSheet();
+      }
+      showToast(
+        state.shuffleChoices
+          ? 'เปิดสลับลำดับช้อยส์ (A/B/C/D) แล้ว เพื่อฝึกจำเนื้อหาไม่จำตำแหน่ง'
+          : 'ปิดการสลับช้อยส์ (เรียงช้อยส์ตามต้นฉบับ PDF)',
+        'info'
+      );
+    }
+
+    // =========================================================================
+    // RESPONSIVE DEVICE LAYOUT ENGINE (AUTO / MOBILE / IPAD TABLET / DESKTOP)
+    // =========================================================================
+    function getEffectiveDevice() {
+      if (state.deviceMode !== 'auto') return state.deviceMode;
+      const w = window.innerWidth;
+      if (w < 640) return 'mobile';
+      if (w >= 640 && w <= 1080) return 'tablet';
+      return 'desktop';
+    }
+
+    function setDeviceMode(mode) {
+      state.deviceMode = mode;
+      saveState();
+      applyDeviceLayout();
+      if (state.viewMode === 'drill') {
+        renderCurrentQuestion();
+      }
+    }
+
+    function applyDeviceLayout() {
+      // Update active pill styling in header
+      document.querySelectorAll('.device-btn').forEach(btn => {
+        const isSelected = btn.getAttribute('data-device') === state.deviceMode;
+        btn.classList.toggle('bg-white', isSelected);
+        btn.classList.toggle('text-brand-700', isSelected);
+        btn.classList.toggle('shadow-xs', isSelected);
+        btn.classList.toggle('text-slate-600', !isSelected);
+      });
+
+      const effective = getEffectiveDevice();
+      const mainWrapper = document.getElementById('mainWrapper');
+      const quizLayoutGrid = document.getElementById('quizLayoutGrid');
+      const tabletSidebar = document.getElementById('tabletSplitSidebar');
+      const mobileBar = document.getElementById('mobileBottomBar');
+      const mobileSpacer = document.getElementById('mobileBottomSpacer');
+      const desktopNav = document.getElementById('desktopNavControls');
+
+      if (effective === 'mobile') {
+        mainWrapper.className = 'flex-1 max-w-xl w-full mx-auto px-3 py-3';
+        quizLayoutGrid.className = 'grid grid-cols-1 gap-4';
+        tabletSidebar.classList.add('hidden');
+        tabletSidebar.classList.remove('flex');
+
+        if (state.viewMode === 'drill') {
+          mobileBar.classList.remove('hidden');
+          mobileSpacer.classList.remove('hidden');
+          desktopNav.classList.add('hidden');
+        } else {
+          mobileBar.classList.add('hidden');
+          mobileSpacer.classList.add('hidden');
+        }
+      } else if (effective === 'tablet') {
+        mainWrapper.className = 'flex-1 max-w-6xl w-full mx-auto px-4 py-4';
+        quizLayoutGrid.className = 'grid grid-cols-12 gap-4 items-start';
+        tabletSidebar.className = 'col-span-4 bg-white rounded-2xl border border-slate-200 shadow-xs p-3.5 flex flex-col max-h-[calc(100vh-11rem)] sticky top-36';
+        document.getElementById('questionColumn').className = 'col-span-8 space-y-4 min-w-0';
+
+        mobileBar.classList.add('hidden');
+        mobileSpacer.classList.add('hidden');
+        desktopNav.classList.remove('hidden');
+        renderTabletSidebarGrid();
+      } else {
+        // Desktop
+        mainWrapper.className = 'flex-1 max-w-4xl w-full mx-auto px-5 py-6';
+        quizLayoutGrid.className = 'grid grid-cols-1 gap-5';
+        tabletSidebar.classList.add('hidden');
+        tabletSidebar.classList.remove('flex');
+        document.getElementById('questionColumn').className = 'space-y-4 min-w-0';
+
+        mobileBar.classList.add('hidden');
+        mobileSpacer.classList.add('hidden');
+        desktopNav.classList.remove('hidden');
+      }
+    }
+
+    function renderTabletSidebarGrid() {
+      const effective = getEffectiveDevice();
+      if (effective !== 'tablet') return;
+
+      const grid = document.getElementById('tabletSidebarGrid');
+      const filtered = getFilteredQuestions();
+      const activeQ = filtered[state.currentIndex];
+      let masteredCount = 0;
+
+      QUESTIONS.forEach(q => {
+        const userAns = state.answers[q.id];
+        if (userAns !== undefined && userAns === q.ans) masteredCount++;
+      });
+
+      const titleEl = document.getElementById('tabletSidebarTitle');
+      const subEl = document.getElementById('tabletSidebarSubtitle');
+      if (state.randomMode && !state.drillLoopActive) {
+        titleEl.textContent = `คิวสุ่มข้อ (${filtered.length} ข้อ)`;
+        subEl.textContent = 'เลขในปุ่ม = ข้อต้นฉบับ PDF';
+      } else {
+        titleEl.textContent = `สารบัญข้อสอบ (${filtered.length} ข้อ)`;
+        subEl.textContent = 'แตะเลขข้อเพื่อข้ามทันที';
+      }
+
+      const html = filtered.map((q, idx) => {
+        const userAns = state.answers[q.id];
+        const isCurrent = activeQ && activeQ.id === q.id && idx === state.currentIndex;
+        let cls = 'h-9 rounded-lg text-xs font-bold flex items-center justify-center border transition ';
+
+        if (userAns === undefined) {
+          cls += 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100';
+        } else if (userAns === q.ans) {
+          cls += 'bg-emerald-500 border-emerald-600 text-white';
+        } else {
+          cls += 'bg-rose-500 border-rose-600 text-white';
+        }
+
+        if (isCurrent) {
+          cls += ' ring-2 ring-brand-600 ring-offset-1 scale-105';
+        }
+
+        return `<button type="button" onclick="jumpToFilteredIndex(${idx})" class="${cls}">${q.id}</button>`;
+      }).join('');
+
+      grid.innerHTML = html;
+      document.getElementById('tabletMasteredBadge').textContent = `${masteredCount}/149`;
+    }
+
+    function jumpToFilteredIndex(idx) {
+      if (state.drillLoopActive) {
+        exitDrillLoop();
+      }
+      state.currentIndex = Math.max(0, idx);
+      state.showTrickManual = false;
+      saveState();
+      renderCurrentQuestion();
+    }
+
+    function jumpToQuestionById(qId) {
+      if (state.drillLoopActive) {
+        exitDrillLoop();
+      }
+      const filtered = getFilteredQuestions();
+      let idx = filtered.findIndex(item => item.id === qId);
+      if (idx === -1) {
+        state.currentFilter = 'all';
+        const updated = getFilteredQuestions();
+        idx = updated.findIndex(item => item.id === qId);
+      }
+      state.currentIndex = Math.max(0, idx);
+      state.showTrickManual = false;
+      saveState();
+      renderCurrentQuestion();
+    }
+
+    // =========================================================================
+    // FILTERING & MISTAKE QUEUE HELPERS
+    // =========================================================================
+    function getWrongQuestionIds() {
+      return QUESTIONS.filter(q => {
+        const userAns = state.answers[q.id];
+        return userAns !== undefined && userAns !== q.ans;
+      }).map(q => q.id);
+    }
+
+    function getFilteredQuestions() {
+      if (state.drillLoopActive && state.drillQueue.length > 0) {
+        return state.drillQueue.map(id => QUESTIONS.find(q => q.id === id)).filter(Boolean);
+      }
+      const baseList = getBaseFilteredQuestions();
+      if (state.randomMode) {
+        syncShuffledOrder(false);
+        const mapById = new Map(baseList.map(q => [q.id, q]));
+        return state.shuffledIds.map(id => mapById.get(id)).filter(Boolean);
+      }
+      return baseList;
+    }
+
+    function updateStatsUI() {
+      let correctCount = 0;
+      let wrongCount = 0;
+
+      QUESTIONS.forEach(q => {
+        const userAns = state.answers[q.id];
+        if (userAns !== undefined) {
+          if (userAns === q.ans) correctCount++;
+          else wrongCount++;
+        }
+      });
+
+      const totalAnswered = correctCount + wrongCount;
+      const accuracy = totalAnswered > 0 ? Math.round((correctCount / totalAnswered) * 100) : 0;
+
+      document.getElementById('statCorrect').textContent = correctCount;
+      document.getElementById('statWrong').textContent = wrongCount;
+      document.getElementById('statPercent').textContent = `${accuracy}%`;
+      document.getElementById('chipWrongCount').textContent = wrongCount;
+
+      // Update Random Mode & Reshuffle & Shuffle Choices buttons
+      const randomBtn = document.getElementById('randomModeBtn');
+      const reshuffleBtn = document.getElementById('reshuffleBtn');
+      const shuffleChoicesBtn = document.getElementById('shuffleChoicesBtn');
+
+      if (state.randomMode && !state.drillLoopActive) {
+        randomBtn.className = 'shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-600 text-white border border-purple-600 shadow-xs transition';
+        randomBtn.innerHTML = '<span>🔀 สุ่มข้อ: เปิด</span>';
+        reshuffleBtn.classList.remove('hidden');
+      } else {
+        randomBtn.className = 'shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition';
+        randomBtn.innerHTML = '<span>🔀 สุ่มข้อ</span>';
+        reshuffleBtn.classList.add('hidden');
+      }
+
+      if (state.shuffleChoices) {
+        shuffleChoicesBtn.className = 'shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white border border-indigo-600 shadow-xs transition';
+        shuffleChoicesBtn.innerHTML = '<span>สลับช้อยส์: เปิด</span>';
+      } else {
+        shuffleChoicesBtn.className = 'shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition';
+        shuffleChoicesBtn.innerHTML = '<span>สลับช้อยส์</span>';
+      }
+
+      // Update Category Chips active state
+      document.querySelectorAll('.cat-chip').forEach(chip => {
+        const isActive = !state.drillLoopActive && chip.getAttribute('data-cat') === state.currentFilter;
+        chip.className = isActive
+          ? 'cat-chip shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border bg-brand-600 text-white border-brand-600 shadow-xs transition'
+          : 'cat-chip shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border bg-white text-slate-600 border-slate-200 hover:bg-slate-50 transition';
+      });
+    }
+
+    // =========================================================================
+    // RENDER DRILL / FOCUS QUESTION CARD
+    // =========================================================================
+    function renderCurrentQuestion() {
+      updateStatsUI();
+      const filtered = getFilteredQuestions();
+
+      // Handle empty filter (e.g. 0 mistakes)
+      if (filtered.length === 0) {
+        if (state.drillLoopActive) {
+          exitDrillLoop();
+          showToast('🎉 ยอดเยี่ยม! คุณทำข้อผิดซ้ำจนถูกครบทุกข้อแล้ว!', 'success');
+          return;
+        }
+        if (state.currentFilter === 'mistakes') {
+          showToast('ยอดเยี่ยม! ยังไม่มีข้อที่ตอบผิดในขณะนี้ ระบบสลับกลับไปแสดงทุกหมวดหมู่', 'success');
+          state.currentFilter = 'all';
+          state.currentIndex = 0;
+          saveState();
+          renderCurrentQuestion();
+          return;
+        }
+      }
+
+      if (state.currentIndex >= filtered.length) {
+        state.currentIndex = Math.max(0, filtered.length - 1);
+      }
+
+      const q = filtered[state.currentIndex];
+      const userAns = state.answers[q.id];
+      // In Drill Loop mode, treat current item as unanswered until user taps during this turn
+      const isAnswered = state.drillLoopActive ? (q._loopAnswered !== undefined) : (userAns !== undefined);
+      const activeChoice = state.drillLoopActive ? q._loopAnswered : userAns;
+
+      // Drill Loop Banner
+      const loopBanner = document.getElementById('drillLoopBanner');
+      if (state.drillLoopActive) {
+        loopBanner.classList.remove('hidden');
+        document.getElementById('drillLoopStatusText').textContent = `เหลือข้อที่ต้องเก็บในรอบนี้ ${state.drillQueue.length} ข้อ`;
+      } else {
+        loopBanner.classList.add('hidden');
+      }
+
+      // Update progress bar
+      const pct = Math.round(((state.currentIndex + 1) / filtered.length) * 100);
+      document.getElementById('progressBar').style.width = `${pct}%`;
+      document.getElementById('progressText').textContent = `${state.currentIndex + 1} / ${filtered.length}`;
+
+      // Badges
+      document.getElementById('qCategoryBadge').textContent = CATEGORIES[q.cat];
+      const origBadge = document.getElementById('qOriginalBadge');
+      if (state.randomMode || state.drillLoopActive) {
+        origBadge.textContent = `ข้อต้นฉบับ #${q.id}`;
+        origBadge.classList.remove('hidden');
+        document.getElementById('qNumberBadge').textContent = state.drillLoopActive
+          ? `คิวที่ ${state.currentIndex + 1} / ${filtered.length}`
+          : `สุ่มข้อที่ ${state.currentIndex + 1} / ${filtered.length}`;
+      } else {
+        origBadge.classList.add('hidden');
+        document.getElementById('qNumberBadge').textContent = `ข้อที่ ${q.id} (${state.currentIndex + 1}/${filtered.length})`;
+      }
+
+      const statusBadge = document.getElementById('qStatusBadge');
+      if (isAnswered) {
+        statusBadge.classList.remove('hidden', 'bg-emerald-100', 'text-emerald-800', 'bg-rose-100', 'text-rose-800');
+        if (activeChoice === q.ans) {
+          statusBadge.textContent = '✓ ตอบถูกแล้ว';
+          statusBadge.classList.add('bg-emerald-100', 'text-emerald-800');
+        } else {
+          statusBadge.textContent = '✗ ตอบผิด';
+          statusBadge.classList.add('bg-rose-100', 'text-rose-800');
+        }
+      } else if (state.everWrong[q.id]) {
+        statusBadge.classList.remove('hidden', 'bg-emerald-100', 'text-emerald-800', 'bg-rose-100', 'text-rose-800');
+        statusBadge.textContent = 'เคยตอบผิด';
+        statusBadge.classList.add('bg-rose-100', 'text-rose-800');
+      } else {
+        statusBadge.classList.add('hidden');
+      }
+
+      // Question text
+      document.getElementById('questionText').textContent = state.randomMode && !state.drillLoopActive
+        ? q.q
+        : `${q.id}. ${q.q}`;
+
+      // Code block
+      const codeWrap = document.getElementById('questionCodeWrap');
+      const codeEl = document.getElementById('questionCode');
+      if (q.code) {
+        codeEl.textContent = q.code;
+        codeWrap.classList.remove('hidden');
+      } else {
+        codeWrap.classList.add('hidden');
+      }
+
+      // Media / SVG block
+      const mediaWrap = document.getElementById('questionMediaWrap');
+      if (q.media && MEDIA_TEMPLATES[q.media]) {
+        mediaWrap.innerHTML = MEDIA_TEMPLATES[q.media];
+        mediaWrap.classList.remove('hidden');
+      } else {
+        mediaWrap.innerHTML = '';
+        mediaWrap.classList.add('hidden');
+      }
+
+      // Options (Supports both original order and shuffled choice order)
+      const optionsContainer = document.getElementById('optionsContainer');
+      optionsContainer.innerHTML = '';
+      const choiceOrder = getChoiceOrderForQuestion(q);
+
+      choiceOrder.forEach((origIdx, displayIdx) => {
+        const optText = q.options[origIdx];
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.onclick = () => selectOption(origIdx);
+
+        let baseClass = 'option-btn w-full text-left p-3.5 sm:p-4 rounded-xl border-2 flex items-start gap-3 ';
+        let badgeClass = 'w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 ';
+        let statusIcon = '';
+
+        if (!isAnswered) {
+          baseClass += 'bg-white border-slate-200 hover:border-brand-500 hover:bg-brand-50/40 text-slate-800 cursor-pointer';
+          badgeClass += 'bg-slate-100 text-slate-600';
+        } else {
+          const isCorrectOption = origIdx === q.ans;
+          const isUserChoice = origIdx === activeChoice;
+
+          if (isCorrectOption) {
+            baseClass += 'bg-emerald-50 border-emerald-500 text-emerald-950 font-medium shadow-xs';
+            badgeClass += 'bg-emerald-600 text-white';
+            statusIcon = `<span class="ml-auto text-emerald-600 font-bold text-xs sm:text-sm shrink-0">✓ เฉลย</span>`;
+          } else if (isUserChoice) {
+            baseClass += 'bg-rose-50 border-rose-500 text-rose-950';
+            badgeClass += 'bg-rose-600 text-white';
+            statusIcon = `<span class="ml-auto text-rose-600 font-bold text-xs sm:text-sm shrink-0">✗ ผิด</span>`;
+          } else {
+            baseClass += 'bg-slate-50/70 border-slate-200 text-slate-400 opacity-75';
+            badgeClass += 'bg-slate-200 text-slate-500';
+          }
+        }
+
+        btn.className = baseClass;
+        btn.innerHTML = `
+          <span class="${badgeClass}">${CHOICE_LETTERS[displayIdx] || displayIdx + 1}</span>
+          <span class="flex-1 text-sm sm:text-base leading-relaxed break-words">${escapeHtml(optText)}</span>
+          ${statusIcon}
+        `;
+        optionsContainer.appendChild(btn);
+      });
+
+      // Feedback Box
+      const feedbackBox = document.getElementById('feedbackBox');
+      const feedbackIcon = document.getElementById('feedbackIcon');
+      const feedbackTitle = document.getElementById('feedbackTitle');
+      const feedbackDetail = document.getElementById('feedbackDetail');
+
+      if (isAnswered) {
+        feedbackBox.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-900', 'bg-rose-50', 'border-rose-200', 'text-rose-900');
+        const correctDisplayIdx = choiceOrder.indexOf(q.ans);
+        const correctLetter = CHOICE_LETTERS[correctDisplayIdx] || (correctDisplayIdx + 1);
+        const correctText = q.options[q.ans];
+
+        if (activeChoice === q.ans) {
+          feedbackBox.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-900');
+          feedbackIcon.innerHTML = `<div class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold">✓</div>`;
+          feedbackTitle.textContent = state.drillLoopActive ? 'ถูกต้อง! ปลดล็อกข้อนี้ออกจากคิวแล้ว' : 'ถูกต้อง! จำคำตอบนี้ไว้เลย';
+          feedbackDetail.textContent = `คำตอบที่ถูกต้องคือ (${correctLetter}) ${correctText}` + (q.note ? ` — ${q.note}` : '');
+        } else {
+          feedbackBox.classList.add('bg-rose-50', 'border-rose-200', 'text-rose-900');
+          feedbackIcon.innerHTML = `<div class="w-6 h-6 rounded-full bg-rose-600 text-white flex items-center justify-center text-xs font-bold">!</div>`;
+          feedbackTitle.textContent = state.drillLoopActive ? 'ยังไม่ถูก — ส่งกลับไปต่อท้ายคิวเพื่อวนถามซ้ำ!' : 'ยังไม่ถูก — อ่านทริคช่วยจำด้านล่างได้เลย';
+          feedbackDetail.textContent = `เฉลยที่ถูกต้องคือ (${correctLetter}) ${correctText}` + (q.note ? ` — ${q.note}` : '');
+        }
+      } else {
+        feedbackBox.classList.add('hidden');
+      }
+
+      // Memory Trick Box (Auto-shows when answered wrong, or when user clicks ทริคจำ)
+      const trickBox = document.getElementById('memoryTrickBox');
+      const shouldShowTrick = (isAnswered && activeChoice !== q.ans) || state.showTrickManual;
+      if (shouldShowTrick && q.trick) {
+        document.getElementById('memoryTrickText').textContent = q.trick;
+        trickBox.classList.remove('hidden');
+      } else {
+        trickBox.classList.add('hidden');
+      }
+
+      // Update Desktop & Mobile Nav Buttons
+      const isFirst = state.currentIndex === 0;
+      const isLast = !state.drillLoopActive && state.currentIndex >= filtered.length - 1;
+
+      document.getElementById('prevBtn').disabled = isFirst;
+      document.getElementById('nextBtn').disabled = isLast;
+      document.getElementById('mobPrevBtn').disabled = isFirst;
+      document.getElementById('mobNextBtn').disabled = isLast;
+
+      document.getElementById('revealBtn').disabled = isAnswered;
+      document.getElementById('revealBtn').classList.toggle('opacity-40', isAnswered);
+
+      renderTabletSidebarGrid();
+    }
+
+    function selectOption(optionIdx) {
+      const filtered = getFilteredQuestions();
+      const q = filtered[state.currentIndex];
+      if (!q) return;
+
+      const isCorrect = optionIdx === q.ans;
+      state.answers[q.id] = optionIdx;
+      if (!isCorrect) {
+        state.everWrong[q.id] = true;
+      }
+
+      if (state.drillLoopActive) {
+        q._loopAnswered = optionIdx;
+      }
+
+      saveState();
+      renderCurrentQuestion();
+    }
+
+    function toggleTrickHint() {
+      state.showTrickManual = !state.showTrickManual;
+      renderCurrentQuestion();
+    }
+
+    function revealCurrentAnswer() {
+      const filtered = getFilteredQuestions();
+      const q = filtered[state.currentIndex];
+      if (!q) return;
+
+      if (state.drillLoopActive) {
+        q._loopAnswered = q.ans;
+      } else {
+        state.answers[q.id] = q.ans;
+      }
+      state.showTrickManual = true;
+      saveState();
+      renderCurrentQuestion();
+    }
+
+    function nextQuestion() {
+      if (state.drillLoopActive) {
+        const filtered = getFilteredQuestions();
+        const q = filtered[state.currentIndex];
+        if (q && q._loopAnswered !== undefined) {
+          const answeredCorrectly = q._loopAnswered === q.ans;
+          delete q._loopAnswered;
+          // Remove from front of queue
+          state.drillQueue.splice(state.currentIndex, 1);
+          if (!answeredCorrectly) {
+            // Re-queue at the end to drill again until mastered
+            state.drillQueue.push(q.id);
+          }
+          if (state.drillQueue.length === 0) {
+            exitDrillLoop();
+            showToast('🎉 สุดยอด! คุณเก็บข้อผิดครบทุกข้อในรอบนี้แล้ว!', 'success');
+            return;
+          }
+          state.currentIndex = 0;
+          state.showTrickManual = false;
+          renderCurrentQuestion();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
+      }
+
+      const filtered = getFilteredQuestions();
+      if (state.currentIndex < filtered.length - 1) {
+        state.currentIndex++;
+        state.showTrickManual = false;
+        saveState();
+        renderCurrentQuestion();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    function prevQuestion() {
+      if (state.currentIndex > 0) {
+        state.currentIndex--;
+        state.showTrickManual = false;
+        saveState();
+        renderCurrentQuestion();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    function selectCategoryChip(newVal) {
+      if (state.drillLoopActive) {
+        state.drillLoopActive = false;
+        state.drillQueue = [];
+      }
+
+      if (newVal === 'mistakes') {
+        const wrongCount = getWrongQuestionIds().length;
+        if (wrongCount === 0) {
+          showToast('ยังไม่มีข้อที่ตอบผิดในประวัติ ลองทำข้อสอบก่อนนะ!', 'info');
+          return;
+        }
+      }
+
+      state.currentFilter = newVal;
+      state.currentIndex = 0;
+      state.cheatPage = 0;
+      state.showTrickManual = false;
+      if (state.randomMode) {
+        syncShuffledOrder(true);
+      }
+      saveState();
+
+      if (state.viewMode === 'drill') {
+        renderCurrentQuestion();
+      } else {
+        renderCheatSheet();
+      }
+    }
+
+    // =========================================================================
+    // MISTAKE DRILL LOOP MODE
+    // =========================================================================
+    function openDrillSetupModal() {
+      const wrongIds = getWrongQuestionIds();
+      if (wrongIds.length === 0) {
+        showToast('ยังไม่มีข้อที่ตอบผิดให้วนซ้ำ ลองฝึกทำข้อสอบก่อนนะ!', 'info');
+        return;
+      }
+      document.getElementById('drillSetupDesc').textContent =
+        `พบข้อที่ตอบผิดทั้งหมด ${wrongIds.length} ข้อ ระบบจะนำมาให้ฝึกตอบทีละข้อ หากยังตอบผิดซ้ำ ข้อนั้นจะถูกวนกลับไปต่อท้ายคิวจนกว่าจะตอบถูกครบทุกข้อ!`;
+      document.getElementById('drillSetupModal').classList.remove('hidden');
+    }
+
+    function closeDrillSetupModal() {
+      document.getElementById('drillSetupModal').classList.add('hidden');
+    }
+
+    function startDrillLoop(shuffle) {
+      let queue = getWrongQuestionIds();
+      if (queue.length === 0) {
+        closeDrillSetupModal();
+        return;
+      }
+      if (shuffle) {
+        for (let i = queue.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [queue[i], queue[j]] = [queue[j], queue[i]];
+        }
+      }
+      // Clear any leftover loop state
+      QUESTIONS.forEach(q => { delete q._loopAnswered; });
+
+      state.drillLoopActive = true;
+      state.drillQueue = queue;
+      state.currentIndex = 0;
+      state.showTrickManual = false;
+      closeDrillSetupModal();
+
+      if (state.viewMode === 'cheatsheet') {
+        toggleViewMode();
+      } else {
+        renderCurrentQuestion();
+      }
+      showToast(`เริ่มโหมดวนทำข้อผิด (${queue.length} ข้อ) กดตอบแล้วกด "ถัดไป" ได้เลย`, 'info');
+    }
+
+    function exitDrillLoop() {
+      QUESTIONS.forEach(q => { delete q._loopAnswered; });
+      state.drillLoopActive = false;
+      state.drillQueue = [];
+      state.currentIndex = 0;
+      state.showTrickManual = false;
+      renderCurrentQuestion();
+    }
+
+    // =========================================================================
+    // WINDOWED CHEAT SHEET MODE (20 ITEMS PER PAGE FOR ZERO-LAG 60FPS)
+    // =========================================================================
+    function toggleViewMode() {
+      state.viewMode = state.viewMode === 'drill' ? 'cheatsheet' : 'drill';
+      const drillEl = document.getElementById('drillContainer');
+      const cheatEl = document.getElementById('cheatSheetContainer');
+      const modeLabel = document.getElementById('modeBtnLabel');
+
+      if (state.viewMode === 'cheatsheet') {
+        drillEl.classList.add('hidden');
+        cheatEl.classList.remove('hidden');
+        modeLabel.textContent = 'ทำข้อสอบ';
+        state.cheatPage = 0;
+        applyDeviceLayout();
+        renderCheatSheet();
+      } else {
+        cheatEl.classList.add('hidden');
+        drillEl.classList.remove('hidden');
+        modeLabel.textContent = 'อ่านเฉลย';
+        applyDeviceLayout();
+        renderCurrentQuestion();
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderCheatSheet() {
+      updateStatsUI();
+      const filtered = getFilteredQuestions();
+      const listEl = document.getElementById('cheatSheetList');
+      listEl.innerHTML = '';
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = `<div class="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500">ไม่พบข้อสอบในหมวดหมู่นี้</div>`;
+        document.getElementById('cheatPaginationTop').innerHTML = '';
+        document.getElementById('cheatPaginationBottom').innerHTML = '';
+        return;
+      }
+
+      const totalPages = Math.ceil(filtered.length / CHEAT_PAGE_SIZE);
+      if (state.cheatPage >= totalPages) state.cheatPage = 0;
+      const start = state.cheatPage * CHEAT_PAGE_SIZE;
+      const pageItems = filtered.slice(start, start + CHEAT_PAGE_SIZE);
+
+      const paginationHtml = `
+        <span class="font-semibold text-slate-600">แสดงข้อ ${start + 1} - ${Math.min(start + CHEAT_PAGE_SIZE, filtered.length)} จาก ${filtered.length} ข้อ (หน้า ${state.cheatPage + 1}/${totalPages})</span>
+        <div class="flex items-center gap-1.5">
+          <button onclick="changeCheatPage(-1)" ${state.cheatPage === 0 ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white font-semibold text-slate-700 disabled:opacity-40">← ก่อนหน้า</button>
+          <button onclick="changeCheatPage(1)" ${state.cheatPage >= totalPages - 1 ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white font-semibold text-slate-700 disabled:opacity-40">ถัดไป →</button>
+        </div>
+      `;
+      document.getElementById('cheatPaginationTop').innerHTML = paginationHtml;
+      document.getElementById('cheatPaginationBottom').innerHTML = paginationHtml;
+
+      const fragment = document.createDocumentFragment();
+
+      pageItems.forEach(q => {
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-xs';
+
+        let codeHtml = '';
+        if (q.code) {
+          codeHtml = `<pre class="mt-3 bg-slate-900 text-slate-100 p-3 rounded-xl text-xs overflow-x-auto leading-relaxed"><code>${escapeHtml(q.code)}</code></pre>`;
+        }
+
+        let mediaHtml = '';
+        if (q.media && MEDIA_TEMPLATES[q.media]) {
+          mediaHtml = `<div class="mt-3 overflow-x-auto">${MEDIA_TEMPLATES[q.media]}</div>`;
+        }
+
+        const optionsHtml = q.options.map((opt, idx) => {
+          const isCorrect = idx === q.ans;
+          const letter = CHOICE_LETTERS[idx] || (idx + 1);
+          if (isCorrect) {
+            return `
+              <div class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-400 text-emerald-950 font-semibold text-xs sm:text-sm flex items-start gap-2.5">
+                <span class="w-5 h-5 rounded bg-emerald-600 text-white flex items-center justify-center text-xs shrink-0 mt-0.5">${letter}</span>
+                <span class="flex-1">${escapeHtml(opt)}</span>
+                <span class="text-emerald-700 text-xs font-bold shrink-0">✓ เฉลย</span>
+              </div>
+            `;
+          }
+          return `
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 text-slate-500 text-xs sm:text-sm flex items-start gap-2.5">
+              <span class="w-5 h-5 rounded bg-slate-200 text-slate-600 flex items-center justify-center text-xs shrink-0 mt-0.5">${letter}</span>
+              <span class="flex-1">${escapeHtml(opt)}</span>
+            </div>
+          `;
+        }).join('');
+
+        const trickHtml = q.trick ? `
+          <div class="mt-3 p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-950 text-xs flex items-start gap-2">
+            <span>💡</span>
+            <span><strong>ทริคจำ:</strong> ${escapeHtml(q.trick)}</span>
+          </div>
+        ` : '';
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <span class="text-[11px] font-medium text-brand-600">${CATEGORIES[q.cat]}</span>
+            <span class="text-xs font-bold text-slate-400">ข้อ ${q.id}</span>
+          </div>
+          <h3 class="font-semibold text-slate-800 text-sm sm:text-base leading-relaxed">${q.id}. ${escapeHtml(q.q)}</h3>
+          ${codeHtml}
+          ${mediaHtml}
+          <div class="mt-3 space-y-2">${optionsHtml}</div>
+          ${trickHtml}
+        `;
+        fragment.appendChild(card);
+      });
+
+      listEl.appendChild(fragment);
+    }
+
+    function changeCheatPage(delta) {
+      state.cheatPage += delta;
+      renderCheatSheet();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // =========================================================================
+    // BACKUP & RESTORE MODAL (NO CLIPBOARD API ISSUES IN IFRAME)
+    // =========================================================================
+    function openBackupModal() {
+      const payload = btoa(unescape(encodeURIComponent(JSON.stringify({
+        a: state.answers,
+        w: state.everWrong
+      }))));
+      document.getElementById('backupCodeInput').value = payload;
+      document.getElementById('backupModal').classList.remove('hidden');
+    }
+
+    function closeBackupModal() {
+      document.getElementById('backupModal').classList.add('hidden');
+    }
+
+    function copyBackupCode() {
+      const input = document.getElementById('backupCodeInput');
+      input.select();
+      input.setSelectionRange(0, 99999);
+      try {
+        document.execCommand('copy');
+        showToast('คัดลอกรหัสสำรองข้อมูลเรียบร้อย! นำไปวางเก็บไว้ใน LINE Keep ได้เลย', 'success');
+      } catch (e) {
+        showToast('กรุณากดคัดลอกข้อความในช่องด้วยตนเอง', 'info');
+      }
+      closeBackupModal();
+    }
+
+    function restoreBackupCode() {
+      const raw = document.getElementById('backupCodeInput').value.trim();
+      if (!raw) return;
+      try {
+        const decoded = JSON.parse(decodeURIComponent(escape(atob(raw))));
+        if (decoded && typeof decoded.a === 'object') {
+          state.answers = decoded.a || {};
+          state.everWrong = decoded.w || {};
+          saveState();
+          closeBackupModal();
+          renderCurrentQuestion();
+          showToast('กู้คืนประวัติการทำข้อสอบสำเร็จแล้ว!', 'success');
+        } else {
+          showToast('รหัสไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง', 'info');
+        }
+      } catch (e) {
+        showToast('รูปแบบรหัสสำรองข้อมูลไม่ถูกต้อง', 'info');
+      }
+    }
+
+    // =========================================================================
+    // QUESTION NAVIGATOR GRID MODAL
+    // =========================================================================
+    function openGridModal() {
+      const filtered = getFilteredQuestions();
+      const gridEl = document.getElementById('questionGrid');
+      gridEl.innerHTML = '';
+
+      const titleEl = document.getElementById('gridModalTitle');
+      const subEl = document.getElementById('gridModalSubtitle');
+      if (state.randomMode && !state.drillLoopActive) {
+        titleEl.textContent = `คิวสุ่มข้อสอบ (${filtered.length} ข้อ)`;
+        subEl.textContent = 'เรียงตามลำดับการสุ่มปัจจุบัน (ตัวเลขในปุ่ม = ข้อต้นฉบับ PDF)';
+      } else {
+        titleEl.textContent = `เลือกข้อสอบที่ต้องการ (${filtered.length} ข้อ)`;
+        subEl.textContent = 'เขียว = ตอบถูก • แดง = ตอบผิด • ขาว = ยังไม่ได้ทำ';
+      }
+
+      const fragment = document.createDocumentFragment();
+      filtered.forEach((q, idx) => {
+        const userAns = state.answers[q.id];
+        const isCurrent = idx === state.currentIndex;
+        let btnClass = 'h-11 rounded-xl text-xs font-bold flex items-center justify-center border transition ';
+
+        if (userAns === undefined) {
+          btnClass += 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100';
+        } else if (userAns === q.ans) {
+          btnClass += 'bg-emerald-500 border-emerald-600 text-white';
+        } else {
+          btnClass += 'bg-rose-500 border-rose-600 text-white';
+        }
+
+        if (isCurrent) {
+          btnClass += ' ring-2 ring-brand-600 ring-offset-1';
+        }
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = btnClass;
+        btn.textContent = q.id;
+        btn.onclick = () => {
+          state.currentIndex = idx;
+          state.showTrickManual = false;
+          saveState();
+          if (state.viewMode === 'cheatsheet') {
+            toggleViewMode();
+          } else {
+            renderCurrentQuestion();
+          }
+          closeGridModal();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+        fragment.appendChild(btn);
+      });
+
+      gridEl.appendChild(fragment);
+      document.getElementById('gridModal').classList.remove('hidden');
+    }
+
+    function closeGridModal() {
+      document.getElementById('gridModal').classList.add('hidden');
+    }
+
+    // =========================================================================
+    // RESET & TOAST HELPERS
+    // =========================================================================
+    function confirmReset() {
+      document.getElementById('resetModal').classList.remove('hidden');
+    }
+
+    function closeResetModal() {
+      document.getElementById('resetModal').classList.add('hidden');
+    }
+
+    function executeReset() {
+      state.answers = {};
+      state.everWrong = {};
+      state.currentIndex = 0;
+      state.drillLoopActive = false;
+      state.drillQueue = [];
+      state.showTrickManual = false;
+      state.choiceMaps = {};
+      if (state.currentFilter === 'mistakes') {
+        state.currentFilter = 'all';
+      }
+      if (state.randomMode) {
+        syncShuffledOrder(true);
+      }
+      saveState();
+      closeResetModal();
+      if (state.viewMode === 'drill') {
+        renderCurrentQuestion();
+      } else {
+        renderCheatSheet();
+      }
+      showToast('รีเซ็ตคะแนนและประวัติการทำข้อสอบเรียบร้อยแล้ว', 'info');
+    }
+
+    function showToast(msg, type = 'info') {
+      const banner = document.getElementById('toastBanner');
+      const text = document.getElementById('toastMessage');
+      banner.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-800', 'bg-blue-50', 'border-blue-200', 'text-blue-800');
+      if (type === 'success') {
+        banner.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
+      } else {
+        banner.classList.add('bg-blue-50', 'border-blue-200', 'text-blue-800');
+      }
+      text.textContent = msg;
+    }
+
+    function hideToast() {
+      document.getElementById('toastBanner').classList.add('hidden');
+    }
+
+    function scrollToTopSmooth() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function escapeHtml(str) {
+      if (typeof str !== 'string') return str;
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // =========================================================================
+    // TOUCH SWIPE GESTURES FOR MOBILE & IPAD
+    // =========================================================================
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    function initSwipeGestures() {
+      const card = document.getElementById('swipeCardArea');
+      if (!card) return;
+
+      card.addEventListener('touchstart', (e) => {
+        if (e.touches.length !== 1) return;
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+      }, { passive: true });
+
+      card.addEventListener('touchend', (e) => {
+        if (!touchStartX || !touchStartY) return;
+        const touchEndX = e.changedTouches[0].clientX;
+        const touchEndY = e.changedTouches[0].clientY;
+        const dx = touchEndX - touchStartX;
+        const dy = touchEndY - touchStartY;
+
+        touchStartX = 0;
+        touchStartY = 0;
+
+        // Only trigger horizontal swipe when clearly horizontal (> 65px) and not scrolling vertically
+        if (Math.abs(dx) > 65 && Math.abs(dx) > Math.abs(dy) * 1.6) {
+          if (dx < 0) {
+            nextQuestion();
+          } else {
+            prevQuestion();
+          }
+        }
+      }, { passive: true });
+    }
+
+    // =========================================================================
+    // KEYBOARD NAVIGATION SUPPORT
+    // =========================================================================
+    document.addEventListener('keydown', (e) => {
+      if (state.viewMode !== 'drill') return;
+      if (!document.getElementById('gridModal').classList.contains('hidden')) return;
+      if (!document.getElementById('resetModal').classList.contains('hidden')) return;
+      if (!document.getElementById('backupModal').classList.contains('hidden')) return;
+      if (!document.getElementById('drillSetupModal').classList.contains('hidden')) return;
+
+      const filtered = getFilteredQuestions();
+      const q = filtered[state.currentIndex];
+      const choiceOrder = q ? getChoiceOrderForQuestion(q) : [0, 1, 2, 3];
+
+      const key = e.key.toLowerCase();
+      if (key === 'arrowright') {
+        nextQuestion();
+      } else if (key === 'arrowleft') {
+        prevQuestion();
+      } else if (['1', 'a'].includes(key) && choiceOrder[0] !== undefined) {
+        selectOption(choiceOrder[0]);
+      } else if (['2', 'b'].includes(key) && choiceOrder[1] !== undefined) {
+        selectOption(choiceOrder[1]);
+      } else if (['3', 'c'].includes(key) && choiceOrder[2] !== undefined) {
+        selectOption(choiceOrder[2]);
+      } else if (['4', 'd'].includes(key) && choiceOrder[3] !== undefined) {
+        selectOption(choiceOrder[3]);
+      } else if (['5', 'e'].includes(key) && choiceOrder[4] !== undefined) {
+        selectOption(choiceOrder[4]);
+      }
+    });
+
+    // Floating Back-to-top button visibility & Resize responsiveness
+    window.addEventListener('scroll', () => {
+      const btn = document.getElementById('backToTopBtn');
+      if (window.scrollY > 360) {
+        btn.classList.remove('hidden');
+      } else {
+        btn.classList.add('hidden');
+      }
+    }, { passive: true });
+
+    let resizeTimer = null;
+    window.addEventListener('resize', () => {
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (state.deviceMode === 'auto') {
+          applyDeviceLayout();
+        }
+      }, 150);
+    }, { passive: true });
+
+    // =========================================================================
+    // INITIALIZE APP
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      applyDeviceLayout();
+      renderCurrentQuestion();
+      initSwipeGestures();
+    });
+  </script>
+</body>
+</html>
